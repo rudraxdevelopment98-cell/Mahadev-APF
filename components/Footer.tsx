@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { company, nav } from "@/lib/data";
 
 export default function Footer() {
@@ -26,9 +27,9 @@ export default function Footer() {
             <ul className="mt-5 space-y-3 text-sm">
               {nav.map((item) => (
                 <li key={item.href}>
-                  <a href={item.href} className="text-muted hover:text-gold">
+                  <Link href={item.href} className="text-muted hover:text-gold">
                     {item.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

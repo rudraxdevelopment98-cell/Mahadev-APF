@@ -29,9 +29,9 @@ export default function Industries() {
         </div>
 
         <div className="mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/5 md:grid-cols-4">
-          {industries.map((name, i) => (
+          {industries.map((industry, i) => (
             <motion.div
-              key={name}
+              key={industry.name}
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
@@ -42,7 +42,7 @@ export default function Industries() {
                 0{i + 1}
               </span>
               <span className="text-sm font-medium tracking-wide transition-colors group-hover:text-gold">
-                {name}
+                {industry.name}
               </span>
               <span className="absolute bottom-0 left-0 h-px w-0 bg-gold transition-all duration-500 group-hover:w-full" />
             </motion.div>

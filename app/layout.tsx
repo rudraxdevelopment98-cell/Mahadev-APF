@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import { company } from "@/lib/data";
+import Cursor from "@/components/Cursor";
+import ScrollProgress from "@/components/ScrollProgress";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -51,7 +55,13 @@ export default function RootLayout({
         {/* Map Tailwind font tokens to the next/font CSS variables */}
         <style>{`:root{--font-heading:var(--font-space-grotesk);--font-body:var(--font-inter);}`}</style>
       </head>
-      <body>{children}</body>
+      <body>
+        <Cursor />
+        <ScrollProgress />
+        <Navbar />
+        {children}
+        <Footer />
+      </body>
     </html>
   );
 }

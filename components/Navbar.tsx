@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { company, nav } from "@/lib/data";
 
@@ -19,7 +20,7 @@ export default function Navbar() {
     <motion.header
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ delay: 1.9, duration: 0.7, ease: "easeOut" }}
+      transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
       className="fixed inset-x-0 top-0 z-50"
     >
       <nav
@@ -29,35 +30,35 @@ export default function Navbar() {
             : "bg-transparent py-5"
         }`}
       >
-        <a href="#top" className="flex items-center gap-3" aria-label={company.name}>
+        <Link href="/" className="flex items-center gap-3" aria-label={company.name}>
           <span className="grid h-9 w-9 place-items-center rounded-lg border border-gold/50 font-heading text-sm font-bold text-gold">
             M
           </span>
           <span className="font-heading text-lg font-bold tracking-wide">
             {company.name}
           </span>
-        </a>
+        </Link>
 
         <ul className="hidden items-center gap-8 lg:flex">
           {nav.map((item) => (
             <li key={item.href}>
-              <a
+              <Link
                 href={item.href}
                 className="group relative text-sm text-muted transition-colors hover:text-paper"
               >
                 {item.label}
                 <span className="absolute -bottom-1 left-0 h-px w-0 bg-gold transition-all duration-300 group-hover:w-full" />
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
 
-        <a
-          href="#contact"
+        <Link
+          href="/contact"
           className="hidden rounded-full border border-gold/60 px-5 py-2 text-sm text-gold transition-colors hover:bg-gold hover:text-ink lg:inline-block"
         >
           Request Quote
-        </a>
+        </Link>
 
         <button
           aria-label="Toggle menu"
@@ -83,23 +84,23 @@ export default function Navbar() {
         <ul className="flex flex-col gap-1 p-4">
           {nav.map((item) => (
             <li key={item.href}>
-              <a
+              <Link
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className="block rounded-lg px-4 py-3 text-muted transition-colors hover:bg-white/5 hover:text-paper"
               >
                 {item.label}
-              </a>
+              </Link>
             </li>
           ))}
           <li>
-            <a
-              href="#contact"
+            <Link
+              href="/contact"
               onClick={() => setOpen(false)}
               className="mt-2 block rounded-lg bg-gold px-4 py-3 text-center font-medium text-ink"
             >
               Request Quote
-            </a>
+            </Link>
           </li>
         </ul>
       </motion.div>
