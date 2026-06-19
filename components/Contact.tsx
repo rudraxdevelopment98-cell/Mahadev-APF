@@ -2,11 +2,33 @@
 
 import { useState } from "react";
 import { company } from "@/lib/data";
+import { submitLead } from "@/lib/leads";
 import Reveal from "./Reveal";
 import MagneticButton from "./MagneticButton";
 
 export default function Contact() {
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    const form = new FormData(e.currentTarget);
+    const result = await submitLead({
+      name: String(form.get("name") ?? ""),
+      email: String(form.get("email") ?? ""),
+      company: String(form.get("company") ?? ""),
+      message: String(form.get("message") ?? ""),
+    });
+    setSubmitting(false);
+    if (result.ok) {
+      setSent(true);
+    } else {
+      setError(result.error);
+    }
+  }
 
   return (
     <section id="contact" className="container-px py-28 md:py-36">
@@ -89,13 +111,7 @@ export default function Contact() {
                 </p>
               </div>
             ) : (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setSent(true);
-                }}
-                className="space-y-5"
-              >
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <Field label="Full name" name="name" placeholder="Jane Doe" />
                 <Field
                   label="Work email"
@@ -120,11 +136,17 @@ export default function Contact() {
                     className="w-full rounded-xl border border-white/10 bg-ink/60 px-4 py-3 text-sm outline-none transition-colors placeholder:text-white/30 focus:border-gold"
                   />
                 </div>
+                {error && (
+                  <p className="text-sm text-red-400" role="alert">
+                    {error}
+                  </p>
+                )}
                 <button
                   type="submit"
-                  className="w-full rounded-full bg-gold py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-gold-soft"
+                  disabled={submitting}
+                  className="w-full rounded-full bg-gold py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-gold-soft disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Submit Request
+                  {submitting ? "Submitting…" : "Submit Request"}
                 </button>
               </form>
             )}
