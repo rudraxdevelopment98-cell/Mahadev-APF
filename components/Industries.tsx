@@ -23,7 +23,7 @@ export default function Industries() {
           </Reveal>
           <Reveal index={1}>
             <h2 className="mt-4 font-heading text-4xl font-bold leading-tight text-balance md:text-5xl">
-              Trusted across the world&rsquo;s most critical sectors
+              Spaces we work in
             </h2>
           </Reveal>
         </div>

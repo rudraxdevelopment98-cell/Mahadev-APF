@@ -22,8 +22,8 @@ export default function About() {
             <div className="gold-streak" />
             <div className="absolute inset-0 flex items-end p-8">
               <div className="glass rounded-2xl p-5">
-                <p className="font-heading text-3xl font-bold text-gold">A+</p>
-                <p className="text-sm text-muted">Rated manufacturing facility</p>
+                <p className="font-heading text-3xl font-bold text-gold">15+</p>
+                <p className="text-sm text-muted">Years of in-house craftsmanship</p>
               </div>
             </div>
           </motion.div>
@@ -36,8 +36,8 @@ export default function About() {
             transition={{ delay: 0.5, duration: 0.6 }}
           >
             <div className="flex h-full flex-col items-center justify-center">
-              <span className="font-heading text-2xl font-bold text-gold">ISO</span>
-              <span className="text-[10px] text-muted">9001:2015</span>
+              <span className="font-heading text-2xl font-bold text-gold">GST</span>
+              <span className="text-[10px] text-muted">Registered</span>
             </div>
           </motion.div>
         </div>
@@ -51,34 +51,33 @@ export default function About() {
           </Reveal>
           <Reveal index={1}>
             <h2 className="mt-4 font-heading text-4xl font-bold leading-tight text-balance md:text-5xl">
-              Precision at scale, delivered with{" "}
-              <span className="text-gold-gradient">institutional discipline</span>.
+              Quality work, delivered by{" "}
+              <span className="text-gold-gradient">our own team</span>.
             </h2>
           </Reveal>
           <Reveal index={2}>
             <p className="mt-6 text-muted leading-relaxed">
-              For over two decades Mahadev APF has engineered the structural and
-              electromechanical systems behind landmark infrastructure. We pair
-              five-axis precision manufacturing with a vertically integrated
-              supply chain to deliver flawless quality on uncompromising
-              timelines.
+              For over 15 years, Mahadev APF has been crafting aluminium and uPVC
+              windows, custom furniture, modular kitchens and glass works for
+              homes, offices and shops. Everything is built in our own workshop —
+              so we control the quality, the cost and the timeline.
             </p>
           </Reveal>
           <Reveal index={3}>
             <p className="mt-4 text-muted leading-relaxed">
-              From concept engineering to global commissioning, our programs are
-              run like institutional capital — measured, accountable and built to
-              last generations.
+              From a free measurement and design to clean, on-time fitting by our
+              own team, we make the whole process simple — and back it with proper
+              GST bills and friendly after-sales service.
             </p>
           </Reveal>
 
           <Reveal index={4}>
             <ul className="mt-8 grid grid-cols-2 gap-4">
               {[
-                "Vertically integrated",
-                "Globally certified",
-                "Carbon-neutral roadmap",
-                "24/7 field service",
+                "Own in-house workshop",
+                "Free design & measurement",
+                "Made-to-measure work",
+                "On-time fitting & service",
               ].map((item) => (
                 <li key={item} className="flex items-center gap-3 text-sm">
                   <span className="grid h-6 w-6 place-items-center rounded-full border border-gold/40 text-gold">

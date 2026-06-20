@@ -5,19 +5,19 @@ import MagneticButton from "@/components/MagneticButton";
 import { industries } from "@/lib/data";
 
 export const metadata: Metadata = {
-  title: "Industries",
+  title: "Spaces",
   description:
-    "Mahadev APF serves infrastructure, construction, energy, oil & gas, pharmaceuticals, aerospace, automotive and water treatment.",
+    "Mahadev APF works in homes, apartments, offices, showrooms, shops, restaurants, hospitals and for builders & contractors.",
 };
 
 export default function IndustriesPage() {
   return (
     <main>
       <PageHeader
-        eyebrow="Industries We Serve"
-        title="Trusted across the world's most critical sectors"
-        description="From utility-scale power to validated pharmaceutical environments, our systems are engineered for the demands of each industry we serve."
-        crumbs={[{ label: "Industries" }]}
+        eyebrow="Where We Work"
+        title="Spaces we work in"
+        description="From homes and apartments to offices, showrooms and shops, we build windows, furniture and glass works to suit each space."
+        crumbs={[{ label: "Spaces" }]}
       />
 
       <section className="container-px pb-28 md:pb-36">
@@ -43,14 +43,14 @@ export default function IndustriesPage() {
         <Reveal>
           <div className="mt-16 flex flex-col items-center gap-6 rounded-3xl border border-white/10 bg-ink-soft/60 p-12 text-center">
             <h2 className="font-heading text-3xl font-bold text-balance md:text-4xl">
-              Don&rsquo;t see your sector?
+              Got a different space in mind?
             </h2>
             <p className="max-w-xl text-muted">
-              Our bespoke OEM engineering practice partners with clients across
-              every industrial domain. Tell us your challenge.
+              Whatever the room or building, we can design and build windows,
+              furniture or glass works to fit. Tell us what you need.
             </p>
             <MagneticButton href="/contact" variant="solid">
-              Talk to our engineers
+              Get a free estimate
             </MagneticButton>
           </div>
         </Reveal>

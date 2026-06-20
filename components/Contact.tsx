@@ -45,13 +45,13 @@ export default function Contact() {
               </Reveal>
               <Reveal index={1}>
                 <h2 className="mt-4 font-heading text-4xl font-bold leading-tight text-balance md:text-5xl">
-                  Request a quote or speak with our engineers
+                  Get a free estimate for your space
                 </h2>
               </Reveal>
               <Reveal index={2}>
                 <p className="mt-5 max-w-md text-muted leading-relaxed">
-                  Share your specifications and our program team will respond
-                  within one business day with a tailored proposal.
+                  Tell us what you need and our team will respond within one
+                  business day with a friendly, no-obligation quote.
                 </p>
               </Reveal>
 

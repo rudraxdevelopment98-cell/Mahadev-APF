@@ -1,0 +1,107 @@
+// Mahadev APF — shop + billing system.
+// Dev: SQLite (works out of the box). Production (Vercel): switch `provider`
+// to "postgresql" and point DATABASE_URL at a hosted Postgres (e.g. Neon).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Staff who can log into the admin (shop owner + helpers).
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("ADMIN") // ADMIN | STAFF
+  createdAt    DateTime @default(now())
+}
+
+/// A customer the shop bills.
+model Customer {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  gstin     String?
+  address   String?
+  notes     String?
+  invoices  Invoice[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+/// Rate-list entry — covers both materials and labour/work items.
+model Material {
+  id        String   @id @default(cuid())
+  name      String
+  category  String   @default("OTHER") // FURNITURE | ALUMINIUM | UPVC | GLASS | OTHER
+  kind      String   @default("MATERIAL") // MATERIAL | WORK
+  unit      String   @default("nos") // nos | sqft | rft | set | kg | ...
+  hsn       String?
+  rate      Float    @default(0)
+  taxRate   Float    @default(18)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// A bill: either a GST tax invoice or a plain estimate.
+model Invoice {
+  id          String        @id @default(cuid())
+  number      String        @unique
+  type        String        @default("TAX") // TAX | ESTIMATE
+  date        DateTime      @default(now())
+  status      String        @default("ISSUED") // DRAFT | ISSUED | PARTIAL | PAID | CANCELLED
+  customer    Customer?     @relation(fields: [customerId], references: [id])
+  customerId  String?
+  // Snapshot of customer details at issue time (so prints stay stable).
+  billName    String
+  billPhone   String?
+  billGstin   String?
+  billAddress String?
+  interState  Boolean       @default(false) // true => IGST, false => CGST+SGST
+  notes       String?
+  discount    Float         @default(0)
+  subTotal    Float         @default(0)
+  taxTotal    Float         @default(0)
+  grandTotal  Float         @default(0)
+  items       InvoiceItem[]
+  payments    Payment[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([date])
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId   String
+  description String
+  hsn         String?
+  unit        String  @default("nos")
+  quantity    Float   @default(1)
+  rate        Float   @default(0)
+  taxRate     Float   @default(0)
+  amount      Float   @default(0) // quantity * rate (pre-tax)
+
+  @@index([invoiceId])
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId String
+  amount    Float
+  mode      String   @default("CASH") // CASH | UPI | BANK | CHEQUE | CARD
+  date      DateTime @default(now())
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+}

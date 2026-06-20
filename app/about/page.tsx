@@ -8,7 +8,7 @@ import { company, milestones } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "About",
-  description: `Two decades of precision engineering. ${company.intro}`,
+  description: `15+ years of in-house craftsmanship. ${company.intro}`,
 };
 
 export default function AboutPage() {
@@ -16,7 +16,7 @@ export default function AboutPage() {
     <main>
       <PageHeader
         eyebrow="Our Story"
-        title="Institutional discipline, engineering precision"
+        title="Built in our workshop, fitted by our team"
         description={company.intro}
         crumbs={[{ label: "About" }]}
       />
@@ -25,19 +25,19 @@ export default function AboutPage() {
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
           <Reveal>
             <p className="text-lg leading-relaxed text-muted">
-              Founded in 1998 as a precision fabrication workshop, Mahadev APF has
-              grown into a vertically integrated manufacturing house trusted on
-              six continents. We engineer the structural and electromechanical
-              systems behind landmark infrastructure — and we run every program
-              with the measured accountability of institutional capital.
+              Mahadev APF started as a small aluminium fabrication workshop in
+              Ahmedabad and has grown into a one-stop shop for furniture, aluminium
+              and uPVC windows & doors, and glass works. Over 15 years we&rsquo;ve
+              fitted thousands of windows and built hundreds of kitchens, wardrobes
+              and interiors for happy families and businesses.
             </p>
           </Reveal>
           <Reveal index={1}>
             <p className="text-lg leading-relaxed text-muted">
-              Our advantage is control. By keeping design, fabrication, finishing
-              and quality assurance under one roof, we compress lead times,
-              eliminate hand-off risk and guarantee tolerances that survive the
-              journey from drawing board to commissioning.
+              Our advantage is control. Because we design, fabricate and fit with
+              our own team and workshop, we keep quality high, prices fair and
+              timelines short — and we back every job with a proper GST bill and
+              after-sales service.
             </p>
           </Reveal>
         </div>
@@ -47,7 +47,7 @@ export default function AboutPage() {
       <section className="container-px py-20">
         <Reveal>
           <h2 className="font-heading text-3xl font-bold md:text-4xl">
-            A track record measured in decades
+            Our journey so far
           </h2>
         </Reveal>
         <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/5 md:grid-cols-5">

@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import { company } from "@/lib/data";
-import Cursor from "@/components/Cursor";
-import ScrollProgress from "@/components/ScrollProgress";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import SiteFrame from "@/components/SiteFrame";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -26,10 +23,10 @@ export const metadata: Metadata = {
   },
   description: company.intro,
   keywords: [
-    "industrial manufacturing",
-    "infrastructure",
-    "structural steel",
-    "precision engineering",
+    "aluminium windows",
+    "uPVC windows and doors",
+    "modular furniture",
+    "glass works",
     "Mahadev APF",
   ],
   openGraph: {
@@ -56,11 +53,7 @@ export default function RootLayout({
         <style>{`:root{--font-heading:var(--font-space-grotesk);--font-body:var(--font-inter);}`}</style>
       </head>
       <body>
-        <Cursor />
-        <ScrollProgress />
-        <Navbar />
-        {children}
-        <Footer />
+        <SiteFrame>{children}</SiteFrame>
       </body>
     </html>
   );

@@ -57,15 +57,15 @@ export default function Hero() {
           className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-white/5 px-4 py-1.5 text-xs uppercase tracking-[0.25em] text-gold"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-gold" />
-          Industrial Excellence Since 1998
+          Aluminium · uPVC · Furniture · Glass
         </motion.span>
 
         <h1 className="mt-6 max-w-4xl font-heading text-5xl font-black leading-[0.98] tracking-tight text-balance sm:text-6xl md:text-7xl lg:text-8xl">
-          <RevealLine delay={2.2}>Engineering the</RevealLine>
+          <RevealLine delay={2.2}>Furniture, Windows</RevealLine>
           <RevealLine delay={2.35}>
-            <span className="text-gold-gradient">Infrastructure</span>
+            <span className="text-gold-gradient">&amp; Glass Works</span>
           </RevealLine>
-          <RevealLine delay={2.5}>of Tomorrow</RevealLine>
+          <RevealLine delay={2.5}>built to fit.</RevealLine>
         </h1>
 
         <motion.p

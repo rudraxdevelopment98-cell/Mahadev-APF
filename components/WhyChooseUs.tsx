@@ -16,7 +16,7 @@ export default function WhyChooseUs() {
         </Reveal>
         <Reveal index={1}>
           <h2 className="mt-4 font-heading text-4xl font-bold leading-tight text-balance md:text-5xl">
-            An engineering partner built for the long term
+            Why families &amp; businesses choose us
           </h2>
         </Reveal>
       </div>

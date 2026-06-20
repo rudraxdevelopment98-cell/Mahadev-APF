@@ -1,0 +1,22 @@
+export type InvoiceItemInput = {
+  description: string;
+  hsn?: string;
+  unit: string;
+  quantity: number;
+  rate: number;
+  taxRate: number;
+};
+
+export type CreateInvoiceInput = {
+  type: "TAX" | "ESTIMATE";
+  customerId?: string | null;
+  billName: string;
+  billPhone?: string;
+  billGstin?: string;
+  billAddress?: string;
+  interState: boolean;
+  date?: string;
+  discount: number;
+  notes?: string;
+  items: InvoiceItemInput[];
+};

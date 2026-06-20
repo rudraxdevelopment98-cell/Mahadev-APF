@@ -5,9 +5,9 @@ import Reveal from "@/components/Reveal";
 import { blogPosts } from "@/lib/data";
 
 export const metadata: Metadata = {
-  title: "Insights",
+  title: "Tips",
   description:
-    "Engineering, manufacturing and sustainability insights from the Mahadev APF team.",
+    "Helpful tips on windows, furniture and glass works from the Mahadev APF team.",
 };
 
 function formatDate(d: string) {
@@ -24,10 +24,10 @@ export default function BlogPage() {
   return (
     <main>
       <PageHeader
-        eyebrow="Insights"
-        title="Engineering notes from the factory floor"
-        description="Perspectives on precision manufacturing, sustainable production and the discipline of delivering critical infrastructure."
-        crumbs={[{ label: "Insights" }]}
+        eyebrow="Tips & Guides"
+        title="Tips to help you choose right"
+        description="Simple, honest advice on windows, modular furniture and glass works — from the team that builds them."
+        crumbs={[{ label: "Tips" }]}
       />
 
       <section className="container-px pb-28 md:pb-36">
