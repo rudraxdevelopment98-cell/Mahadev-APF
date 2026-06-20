@@ -8,7 +8,6 @@ import type { SiteSettings } from "@/lib/settings";
 
 export default function Navbar({ site }: { site: SiteSettings }) {
   const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -35,7 +34,7 @@ export default function Navbar({ site }: { site: SiteSettings }) {
           <span className="grid h-9 w-9 place-items-center rounded-lg border border-gold/50 font-heading text-sm font-bold text-gold">
             {site.name.charAt(0) || "M"}
           </span>
-          <span className="font-heading text-lg font-bold tracking-wide">
+          <span className="font-heading text-base font-bold tracking-wide sm:text-lg">
             {site.name}
           </span>
         </Link>
@@ -56,55 +55,11 @@ export default function Navbar({ site }: { site: SiteSettings }) {
 
         <Link
           href="/contact"
-          className="hidden rounded-full border border-gold/60 px-5 py-2 text-sm text-gold transition-colors hover:bg-gold hover:text-ink lg:inline-block"
+          className="rounded-full border border-gold/60 px-4 py-2 text-xs text-gold transition-colors hover:bg-gold hover:text-ink sm:text-sm lg:px-5"
         >
-          Request Quote
+          Get Quote
         </Link>
-
-        <button
-          aria-label="Toggle menu"
-          onClick={() => setOpen((v) => !v)}
-          className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 lg:hidden"
-        >
-          <span
-            className={`h-px w-6 bg-paper transition-all ${open ? "translate-y-[7px] rotate-45" : ""}`}
-          />
-          <span className={`h-px w-6 bg-paper transition-all ${open ? "opacity-0" : ""}`} />
-          <span
-            className={`h-px w-6 bg-paper transition-all ${open ? "-translate-y-[7px] -rotate-45" : ""}`}
-          />
-        </button>
       </nav>
-
-      {/* Mobile drawer */}
-      <motion.div
-        initial={false}
-        animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
-        className="glass mx-3 overflow-hidden rounded-2xl lg:hidden"
-      >
-        <ul className="flex flex-col gap-1 p-4">
-          {nav.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="block rounded-lg px-4 py-3 text-muted transition-colors hover:bg-white/5 hover:text-paper"
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
-          <li>
-            <Link
-              href="/contact"
-              onClick={() => setOpen(false)}
-              className="mt-2 block rounded-lg bg-gold px-4 py-3 text-center font-medium text-ink"
-            >
-              Request Quote
-            </Link>
-          </li>
-        </ul>
-      </motion.div>
     </motion.header>
   );
 }

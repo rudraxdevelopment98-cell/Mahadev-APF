@@ -15,9 +15,9 @@ export default async function Home() {
     <>
       <Preloader />
       <main>
-        <Hero />
-        <About />
-        <Stats />
+        <Hero site={site} />
+        <About site={site} />
+        <Stats stats={site.stats} />
         <Products />
         <Industries />
         <WhyChooseUs />

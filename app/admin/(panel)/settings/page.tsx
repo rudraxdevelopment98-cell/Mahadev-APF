@@ -102,6 +102,59 @@ export default async function SettingsPage({
           <Field name="term3" label="Term 3" defaultValue={s.terms[2] ?? ""} />
         </section>
 
+        {/* Homepage hero */}
+        <section className="space-y-4 rounded-2xl border border-white/10 bg-ink-soft/40 p-6">
+          <h2 className="font-heading text-lg font-bold">Homepage — big headline</h2>
+          <Field name="heroBadge" label="Small badge above headline" defaultValue={s.heroBadge} />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field name="heroLine1" label="Headline line 1" defaultValue={s.heroLine1} />
+            <Field name="heroLine2" label="Line 2 (gold)" defaultValue={s.heroLine2} />
+            <Field name="heroLine3" label="Headline line 3" defaultValue={s.heroLine3} />
+          </div>
+          <div>
+            <label className={label}>Intro line under the headline</label>
+            <textarea name="heroIntro" defaultValue={s.heroIntro} rows={2} className={input} />
+          </div>
+        </section>
+
+        {/* Homepage about */}
+        <section className="space-y-4 rounded-2xl border border-white/10 bg-ink-soft/40 p-6">
+          <h2 className="font-heading text-lg font-bold">Homepage — about section</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field name="aboutHeading" label="Heading start" defaultValue={s.aboutHeading} />
+            <Field name="aboutHeadingGold" label="Heading highlight (gold)" defaultValue={s.aboutHeadingGold} />
+          </div>
+          <div>
+            <label className={label}>Paragraph 1</label>
+            <textarea name="aboutPara1" defaultValue={s.aboutPara1} rows={3} className={input} />
+          </div>
+          <div>
+            <label className={label}>Paragraph 2</label>
+            <textarea name="aboutPara2" defaultValue={s.aboutPara2} rows={3} className={input} />
+          </div>
+        </section>
+
+        {/* Homepage stats */}
+        <section className="space-y-4 rounded-2xl border border-white/10 bg-ink-soft/40 p-6">
+          <h2 className="font-heading text-lg font-bold">Homepage — number counters</h2>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_2fr]">
+              <div>
+                <label className={label}>Number {i + 1}</label>
+                <input name={`stat${i}value`} type="number" defaultValue={s.stats[i]?.value ?? 0} className={input} />
+              </div>
+              <div>
+                <label className={label}>Suffix (e.g. +)</label>
+                <input name={`stat${i}suffix`} defaultValue={s.stats[i]?.suffix ?? ""} className={input} />
+              </div>
+              <div>
+                <label className={label}>Label</label>
+                <input name={`stat${i}label`} defaultValue={s.stats[i]?.label ?? ""} className={input} />
+              </div>
+            </div>
+          ))}
+        </section>
+
         <div className="sticky bottom-0 -mx-1 bg-ink/80 py-3 backdrop-blur">
           <button className="w-full rounded-full bg-gold py-3 text-sm font-semibold text-ink hover:bg-gold-soft sm:w-auto sm:px-10">
             Save changes

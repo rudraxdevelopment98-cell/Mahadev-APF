@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Cursor from "@/components/Cursor";
 import ScrollProgress from "@/components/ScrollProgress";
 import Navbar from "@/components/Navbar";
+import MobileNav from "@/components/MobileNav";
 import Footer from "@/components/Footer";
 import type { SiteSettings } from "@/lib/settings";
 
@@ -30,6 +31,9 @@ export default function SiteFrame({
       <Navbar site={site} />
       {children}
       <Footer site={site} />
+      {/* keeps the floating mobile nav from covering the footer */}
+      <div className="h-24 lg:hidden" />
+      <MobileNav />
     </>
   );
 }

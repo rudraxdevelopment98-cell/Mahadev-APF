@@ -13,6 +13,13 @@ export async function saveSettings(formData: FormData) {
 
   const get = (k: string) => String(formData.get(k) ?? "").trim();
 
+  const num = (k: string) => Number(formData.get(k)) || 0;
+  const stats = [0, 1, 2, 3].map((i) => ({
+    value: num(`stat${i}value`),
+    suffix: get(`stat${i}suffix`),
+    label: get(`stat${i}label`),
+  })).filter((s) => s.label);
+
   const data: SiteSettings = {
     name: get("name"),
     legalName: get("legalName"),
@@ -30,6 +37,16 @@ export async function saveSettings(formData: FormData) {
     bankIfsc: get("bankIfsc"),
     bankHolder: get("bankHolder"),
     terms: [get("term1"), get("term2"), get("term3")].filter(Boolean),
+    heroBadge: get("heroBadge"),
+    heroLine1: get("heroLine1"),
+    heroLine2: get("heroLine2"),
+    heroLine3: get("heroLine3"),
+    heroIntro: get("heroIntro"),
+    aboutHeading: get("aboutHeading"),
+    aboutHeadingGold: get("aboutHeadingGold"),
+    aboutPara1: get("aboutPara1"),
+    aboutPara2: get("aboutPara2"),
+    stats,
   };
 
   const json = data as unknown as Prisma.InputJsonObject;

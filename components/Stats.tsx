@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { stats } from "@/lib/data";
+import type { StatItem } from "@/lib/settings";
 
 function Counter({ value, suffix }: { value: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -33,7 +33,7 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
   );
 }
 
-export default function Stats() {
+export default function Stats({ stats }: { stats: StatItem[] }) {
   return (
     <section className="relative border-y border-white/10 bg-ink-soft/60">
       <div className="container-px grid grid-cols-2 gap-px py-4 lg:grid-cols-4">

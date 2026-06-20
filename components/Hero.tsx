@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { company } from "@/lib/data";
+import type { SiteSettings } from "@/lib/settings";
 import MagneticButton from "./MagneticButton";
 
 /**
@@ -10,7 +10,7 @@ import MagneticButton from "./MagneticButton";
  * Drop a real drone clip at /public/hero.mp4 and it plays automatically;
  * otherwise an animated grid + gold-streak fallback keeps the premium feel.
  */
-export default function Hero() {
+export default function Hero({ site }: { site: SiteSettings }) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -57,15 +57,15 @@ export default function Hero() {
           className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-white/5 px-4 py-1.5 text-xs uppercase tracking-[0.25em] text-gold"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-gold" />
-          Aluminium · uPVC · Furniture · Glass
+          {site.heroBadge}
         </motion.span>
 
-        <h1 className="mt-6 max-w-4xl font-heading text-5xl font-black leading-[0.98] tracking-tight text-balance sm:text-6xl md:text-7xl lg:text-8xl">
-          <RevealLine delay={2.2}>Furniture, Windows</RevealLine>
+        <h1 className="mt-6 max-w-4xl font-heading text-[2.6rem] font-black leading-[1.02] tracking-tight text-balance sm:text-6xl md:text-7xl lg:text-8xl">
+          <RevealLine delay={2.2}>{site.heroLine1}</RevealLine>
           <RevealLine delay={2.35}>
-            <span className="text-gold-gradient">&amp; Glass Works</span>
+            <span className="text-gold-gradient">{site.heroLine2}</span>
           </RevealLine>
-          <RevealLine delay={2.5}>built to fit.</RevealLine>
+          <RevealLine delay={2.5}>{site.heroLine3}</RevealLine>
         </h1>
 
         <motion.p
@@ -74,7 +74,7 @@ export default function Hero() {
           transition={{ delay: 2.7, duration: 0.6 }}
           className="mt-7 max-w-xl text-base leading-relaxed text-muted md:text-lg"
         >
-          {company.intro}
+          {site.heroIntro}
         </motion.p>
 
         <motion.div

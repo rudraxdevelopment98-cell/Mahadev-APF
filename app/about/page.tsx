@@ -5,13 +5,15 @@ import Stats from "@/components/Stats";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import Testimonials from "@/components/Testimonials";
 import { company, milestones } from "@/lib/data";
+import { getSettings } from "@/lib/settings-server";
 
 export const metadata: Metadata = {
   title: "About",
   description: `15+ years of in-house craftsmanship. ${company.intro}`,
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const site = await getSettings();
   return (
     <main>
       <PageHeader
@@ -65,7 +67,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <Stats />
+      <Stats stats={site.stats} />
       <WhyChooseUs />
       <Testimonials />
     </main>

@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import type { SiteSettings } from "@/lib/settings";
 import Reveal from "./Reveal";
 
-export default function About() {
+export default function About({ site }: { site: SiteSettings }) {
   return (
     <section id="about" className="container-px relative py-28 md:py-36">
       <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
@@ -51,24 +52,15 @@ export default function About() {
           </Reveal>
           <Reveal index={1}>
             <h2 className="mt-4 font-heading text-4xl font-bold leading-tight text-balance md:text-5xl">
-              Quality work, delivered by{" "}
-              <span className="text-gold-gradient">our own team</span>.
+              {site.aboutHeading}{" "}
+              <span className="text-gold-gradient">{site.aboutHeadingGold}</span>.
             </h2>
           </Reveal>
           <Reveal index={2}>
-            <p className="mt-6 text-muted leading-relaxed">
-              For over 15 years, Mahadev APF has been crafting aluminium and uPVC
-              windows, custom furniture, modular kitchens and glass works for
-              homes, offices and shops. Everything is built in our own workshop —
-              so we control the quality, the cost and the timeline.
-            </p>
+            <p className="mt-6 text-muted leading-relaxed">{site.aboutPara1}</p>
           </Reveal>
           <Reveal index={3}>
-            <p className="mt-4 text-muted leading-relaxed">
-              From a free measurement and design to clean, on-time fitting by our
-              own team, we make the whole process simple — and back it with proper
-              GST bills and friendly after-sales service.
-            </p>
+            <p className="mt-4 text-muted leading-relaxed">{site.aboutPara2}</p>
           </Reveal>
 
           <Reveal index={4}>
