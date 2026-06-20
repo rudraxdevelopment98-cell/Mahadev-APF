@@ -1,11 +1,43 @@
 # Mahadev APF — running & deploying
 
-This is one Next.js app containing **both** the public website and the
-`/admin` billing system (customers, rate list, GST/estimate invoices,
-payments, dashboard). Data is stored with Prisma.
+One Next.js app containing **both** the public website and the `/admin` billing
+system (customers, rate list, GST/estimate invoices, payments, dashboard).
+Data is stored in **Postgres** (e.g. Neon) via Prisma.
 
-- **Local development:** SQLite (zero setup — works out of the box).
-- **Production (Vercel):** a hosted Postgres database (e.g. free Neon).
+> The **public website needs no database** — it always works. Only the `/admin`
+> billing area needs `DATABASE_URL`.
+
+---
+
+## Deploy to Vercel + Neon (production)
+
+### 1. Create the database tables (one time)
+
+1. Open your Neon project → **SQL Editor**.
+2. Open [`prisma/setup.sql`](prisma/setup.sql) from this repo, copy **all** of
+   it, paste into the editor and click **Run**.
+
+This creates every table and seeds the admin user + a starter rate list.
+It is safe to run more than once.
+
+### 2. Set environment variables on Vercel
+
+Vercel → your project → **Settings → Environment Variables** → add (for all
+environments):
+
+| Name           | Value                                                        |
+| -------------- | ------------------------------------------------------------ |
+| `DATABASE_URL` | your Neon **pooled** connection string (`...-pooler...`)     |
+| `AUTH_SECRET`  | a long random string — e.g. `openssl rand -base64 32`        |
+
+### 3. Redeploy
+
+Vercel → **Deployments** → redeploy the latest (or push a commit). Once it
+finishes:
+
+- Website: `https://<your-app>.vercel.app`
+- Admin:   `https://<your-app>.vercel.app/admin`
+  → sign in with **admin@mahadevapf.com / admin123** (change this — see below).
 
 ---
 
@@ -13,85 +45,42 @@ payments, dashboard). Data is stored with Prisma.
 
 ```bash
 npm install
-cp .env.example .env        # then edit values
-npm run db:migrate          # create the SQLite database
-npm run db:seed             # add the admin user + sample rate list
-npm run dev                 # http://localhost:3000
+# create .env with DATABASE_URL (your Neon string) + AUTH_SECRET
+npm run db:push     # create tables in the database from the schema
+npm run db:seed     # add the admin user + sample rate list
+npm run dev         # http://localhost:3000
 ```
 
-Admin panel: <http://localhost:3000/admin> — sign in with
-**admin@mahadevapf.com / admin123** (change this — see below).
-
-`.env` needs:
+`.env`:
 
 ```
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://USER:PASS@HOST-pooler.../neondb?sslmode=require"
 AUTH_SECRET="a-long-random-string-at-least-32-characters"
 ```
 
----
-
-## Deploy to Vercel (with a real database)
-
-GitHub Pages can't run this app (it needs a server + database). Use Vercel.
-
-### 1. Create a Postgres database (Neon — free)
-
-1. Sign up at <https://neon.tech> and create a project.
-2. Copy the connection string (looks like
-   `postgresql://user:pass@host/db?sslmode=require`).
-
-### 2. Point Prisma at Postgres
-
-In `prisma/schema.prisma`, change the datasource provider:
-
-```prisma
-datasource db {
-  provider = "postgresql"   // was "sqlite"
-  url      = env("DATABASE_URL")
-}
-```
-
-Commit this change (or keep a separate branch for production).
-
-### 3. Import the repo on Vercel
-
-1. <https://vercel.com> → sign in with GitHub → **Add New… → Project**.
-2. Import `rudraxdevelopment98-cell/mahadev-apf`. It auto-detects Next.js.
-3. Add **Environment Variables**:
-   - `DATABASE_URL` = your Neon connection string
-   - `AUTH_SECRET` = a long random string (e.g. `openssl rand -base64 32`)
-4. Deploy.
-
-`postinstall` runs `prisma generate` automatically during the build.
-
-### 4. Create the database tables + admin user (one time)
-
-From your machine, pointed at the production database:
-
-```bash
-DATABASE_URL="<neon-url>" npx prisma migrate deploy
-DATABASE_URL="<neon-url>" npm run db:seed
-```
-
-Your site is now live, with the admin at `https://<your-app>.vercel.app/admin`.
+> `npm run db:push` / `db:seed` need outbound access to your database. If your
+> network blocks Postgres, use the `prisma/setup.sql` route in Neon's SQL Editor
+> instead (see above).
 
 ---
 
 ## Change the admin password / add staff
 
-The seed creates one admin (`admin@mahadevapf.com` / `admin123`). To change it
-or add users, open Prisma Studio and edit the `User` table (passwords are
-bcrypt hashes), or generate a hash:
+The seed creates one admin (`admin@mahadevapf.com` / `admin123`). To change it,
+generate a new hash:
 
 ```bash
 node -e "console.log(require('bcryptjs').hashSync('YOUR_NEW_PASSWORD',10))"
 ```
 
-then update `passwordHash` for the user (e.g. via `npm run db:studio`).
+then update `passwordHash` for that user — in Neon's SQL Editor:
 
-> A proper "Settings → change password / manage staff" screen is a good next
-> addition — ask and it can be built into the admin.
+```sql
+UPDATE "User" SET "passwordHash" = '<hash>' WHERE "email" = 'admin@mahadevapf.com';
+```
+
+> A "Settings → change password / manage staff" screen is a good next addition —
+> ask and it can be built into the admin.
 
 ---
 
@@ -100,3 +89,9 @@ then update `passwordHash` for the user (e.g. via `npm run db:studio`).
 Edit `lib/shop.ts` to set the real shop name, address, **GSTIN**, PAN, bank
 details and invoice terms — these appear on printed invoices and across the
 site.
+
+## Security note
+
+Treat `DATABASE_URL` and `AUTH_SECRET` as secrets — keep them in environment
+variables, never commit them. If a database password is ever exposed, rotate it
+in Neon and update `DATABASE_URL` on Vercel.

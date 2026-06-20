@@ -1,13 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 
-// Default to the local SQLite database when DATABASE_URL is not provided by the
-// environment (e.g. a production-mode `next start` that didn't load .env).
-// Production deployments set DATABASE_URL to their real (Postgres) database.
+// The admin/billing area needs a Postgres database. Set DATABASE_URL (and
+// DIRECT_URL for migrations) in your environment / Vercel project settings.
+// The public website does not use the database, so it works without it.
 if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = "file:./dev.db";
   console.warn(
-    "[db] DATABASE_URL not set — defaulting to local SQLite (prisma/dev.db). " +
-      "Set DATABASE_URL in your environment for production.",
+    "[db] DATABASE_URL is not set — the /admin billing area will not work " +
+      "until you configure a Postgres DATABASE_URL.",
   );
 }
 
