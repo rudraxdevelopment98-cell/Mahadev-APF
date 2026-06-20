@@ -3,16 +3,13 @@ import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
+import { authSecretKey } from "./auth-secret";
 
 const COOKIE = "mapf_session";
 const ALG = "HS256";
 
 function secret(): Uint8Array {
-  const s = process.env.AUTH_SECRET;
-  if (!s || s.length < 16) {
-    throw new Error("AUTH_SECRET is missing or too short (set it in .env).");
-  }
-  return new TextEncoder().encode(s);
+  return authSecretKey();
 }
 
 export type SessionUser = { id: string; name: string; email: string; role: string };

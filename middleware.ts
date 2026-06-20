@@ -1,15 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { authSecretKey } from "@/lib/auth-secret";
 
 const COOKIE = "mapf_session";
 
 // Verify the session JWT at the edge (jose only — no Node APIs).
 async function isValid(token: string | undefined): Promise<boolean> {
   if (!token) return false;
-  const s = process.env.AUTH_SECRET;
-  if (!s) return false;
   try {
-    await jwtVerify(token, new TextEncoder().encode(s));
+    await jwtVerify(token, authSecretKey());
     return true;
   } catch {
     return false;
