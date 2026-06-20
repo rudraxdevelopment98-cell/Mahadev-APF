@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { company } from "@/lib/data";
 import { submitLead } from "@/lib/leads";
+import type { SiteSettings } from "@/lib/settings";
 import Reveal from "./Reveal";
 import MagneticButton from "./MagneticButton";
 
-export default function Contact() {
+export default function Contact({ site }: { site: SiteSettings }) {
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,22 +59,22 @@ export default function Contact() {
                 <ul className="mt-10 space-y-5 text-sm">
                   <li className="flex items-start gap-4">
                     <span className="text-gold">✉</span>
-                    <a href={`mailto:${company.email}`} className="hover:text-gold">
-                      {company.email}
+                    <a href={`mailto:${site.email}`} className="hover:text-gold">
+                      {site.email}
                     </a>
                   </li>
                   <li className="flex items-start gap-4">
                     <span className="text-gold">☎</span>
                     <a
-                      href={`tel:${company.phone.replace(/\s/g, "")}`}
+                      href={`tel:${site.phone.replace(/\s/g, "")}`}
                       className="hover:text-gold"
                     >
-                      {company.phone}
+                      {site.phone}
                     </a>
                   </li>
                   <li className="flex items-start gap-4">
                     <span className="text-gold">⌖</span>
-                    <span className="text-muted">{company.address}</span>
+                    <span className="text-muted">{site.address}</span>
                   </li>
                 </ul>
               </Reveal>
@@ -82,7 +82,7 @@ export default function Contact() {
               <Reveal index={4}>
                 <div className="mt-10 flex flex-wrap gap-4">
                   <MagneticButton
-                    href={`https://wa.me/${company.whatsapp}`}
+                    href={`https://wa.me/${site.whatsapp}`}
                     variant="outline"
                   >
                     WhatsApp

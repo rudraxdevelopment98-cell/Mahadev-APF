@@ -89,6 +89,13 @@ CREATE TABLE IF NOT EXISTS "Payment" (
     CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
 );
 
+CREATE TABLE IF NOT EXISTS "SiteSetting" (
+    "id" INTEGER NOT NULL,
+    "data" JSONB NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "SiteSetting_pkey" PRIMARY KEY ("id")
+);
+
 -- ---------- Indexes ----------
 CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_number_key" ON "Invoice"("number");

@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { company, nav } from "@/lib/data";
+import { nav } from "@/lib/data";
+import type { SiteSettings } from "@/lib/settings";
 
-export default function Navbar() {
+export default function Navbar({ site }: { site: SiteSettings }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -30,12 +31,12 @@ export default function Navbar() {
             : "bg-transparent py-5"
         }`}
       >
-        <Link href="/" className="flex items-center gap-3" aria-label={company.name}>
+        <Link href="/" className="flex items-center gap-3" aria-label={site.name}>
           <span className="grid h-9 w-9 place-items-center rounded-lg border border-gold/50 font-heading text-sm font-bold text-gold">
-            M
+            {site.name.charAt(0) || "M"}
           </span>
           <span className="font-heading text-lg font-bold tracking-wide">
-            {company.name}
+            {site.name}
           </span>
         </Link>
 

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { computeTotals, round2 } from "@/lib/money";
-import { shop } from "@/lib/shop";
+import { getSettings } from "@/lib/settings-server";
 import type { CreateInvoiceInput } from "@/lib/invoice-types";
 
 async function requireAuth() {
@@ -20,7 +20,7 @@ function financialYear(d: Date): string {
   return `${startYear}-${String((startYear + 1) % 100).padStart(2, "0")}`;
 }
 
-async function nextInvoiceNumber(date: Date): Promise<string> {
+async function nextInvoiceNumber(date: Date, prefix: string): Promise<string> {
   const fy = financialYear(date);
   const start = new Date(date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1, 3, 1);
   const end = new Date(start.getFullYear() + 1, 3, 1);
@@ -28,7 +28,7 @@ async function nextInvoiceNumber(date: Date): Promise<string> {
     where: { date: { gte: start, lt: end } },
   });
   const seq = String(countInFy + 1).padStart(3, "0");
-  return `${shop.invoicePrefix}/${fy}/${seq}`;
+  return `${prefix}/${fy}/${seq}`;
 }
 
 export async function createInvoice(input: CreateInvoiceInput) {
@@ -52,7 +52,8 @@ export async function createInvoice(input: CreateInvoiceInput) {
   );
 
   const date = input.date ? new Date(input.date) : new Date();
-  const number = await nextInvoiceNumber(date);
+  const settings = await getSettings();
+  const number = await nextInvoiceNumber(date, settings.invoicePrefix);
 
   const invoice = await prisma.invoice.create({
     data: {

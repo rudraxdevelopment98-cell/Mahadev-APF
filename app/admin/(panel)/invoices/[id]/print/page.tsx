@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { shop } from "@/lib/shop";
+import { getSettings } from "@/lib/settings-server";
 import { formatINR, amountInWords } from "@/lib/money";
 import PrintButton from "@/components/admin/PrintButton";
 
@@ -13,10 +13,13 @@ export default async function InvoicePrintPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const inv = await prisma.invoice.findUnique({
-    where: { id },
-    include: { items: true, payments: true },
-  });
+  const [inv, shop] = await Promise.all([
+    prisma.invoice.findUnique({
+      where: { id },
+      include: { items: true, payments: true },
+    }),
+    getSettings(),
+  ]);
   if (!inv) notFound();
 
   const isTax = inv.type === "TAX";
@@ -132,7 +135,7 @@ export default async function InvoicePrintPage({
             <div className="mt-4">
               <p className="font-semibold">Bank Details:</p>
               <p className="text-gray-700">
-                {shop.bank.name} · A/c {shop.bank.account} · IFSC {shop.bank.ifsc}
+                {shop.bankName} · A/c {shop.bankAccount} · IFSC {shop.bankIfsc}
               </p>
             </div>
           </div>

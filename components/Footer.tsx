@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { company, nav } from "@/lib/data";
+import { nav } from "@/lib/data";
+import type { SiteSettings } from "@/lib/settings";
 
-export default function Footer() {
+export default function Footer({ site }: { site: SiteSettings }) {
   return (
     <footer className="border-t border-white/10 bg-ink">
       <div className="container-px py-16">
@@ -9,14 +10,12 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-3">
               <span className="grid h-9 w-9 place-items-center rounded-lg border border-gold/50 font-heading text-sm font-bold text-gold">
-                M
+                {site.name.charAt(0) || "M"}
               </span>
-              <span className="font-heading text-lg font-bold">
-                {company.name}
-              </span>
+              <span className="font-heading text-lg font-bold">{site.name}</span>
             </div>
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-muted">
-              {company.intro}
+              {site.intro}
             </p>
           </div>
 
@@ -41,19 +40,19 @@ export default function Footer() {
             </h4>
             <ul className="mt-5 space-y-3 text-sm text-muted">
               <li>
-                <a href={`mailto:${company.email}`} className="hover:text-gold">
-                  {company.email}
+                <a href={`mailto:${site.email}`} className="hover:text-gold">
+                  {site.email}
                 </a>
               </li>
               <li>
                 <a
-                  href={`tel:${company.phone.replace(/\s/g, "")}`}
+                  href={`tel:${site.phone.replace(/\s/g, "")}`}
                   className="hover:text-gold"
                 >
-                  {company.phone}
+                  {site.phone}
                 </a>
               </li>
-              <li className="max-w-xs">{company.address}</li>
+              <li className="max-w-xs">{site.address}</li>
             </ul>
           </div>
         </div>
@@ -62,7 +61,7 @@ export default function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-4 text-xs text-muted md:flex-row">
           <p>
-            © {new Date().getFullYear()} {company.legalName}. All rights reserved.
+            © {new Date().getFullYear()} {site.legalName}. All rights reserved.
           </p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-gold">

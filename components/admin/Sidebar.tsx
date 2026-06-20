@@ -10,6 +10,7 @@ const links = [
   { href: "/admin/invoices", label: "Invoices", icon: "🧾" },
   { href: "/admin/customers", label: "Customers", icon: "👥" },
   { href: "/admin/materials", label: "Rate List", icon: "📦" },
+  { href: "/admin/settings", label: "Settings", icon: "⚙️" },
 ];
 
 export default function Sidebar({ userName }: { userName: string }) {

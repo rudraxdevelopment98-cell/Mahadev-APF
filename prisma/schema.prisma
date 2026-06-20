@@ -105,3 +105,10 @@ model Payment {
 
   @@index([invoiceId])
 }
+
+/// Editable website content (singleton row, id = 1) managed from the admin.
+model SiteSetting {
+  id        Int      @id @default(1)
+  data      Json
+  updatedAt DateTime @updatedAt
+}
