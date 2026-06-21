@@ -155,6 +155,14 @@ const STATEMENTS: string[] = [
   `INSERT INTO "Customer" ("id","name","phone","email","address","updatedAt") VALUES
     ('cust_sample','Rajesh Patel','9876543210','rajesh@example.com','12, Shivam Bungalows, Satellite, Ahmedabad',CURRENT_TIMESTAMP)
     ON CONFLICT ("id") DO NOTHING`,
+  `INSERT INTO "Service" ("id","title","category","blurb","points","order","updatedAt") VALUES
+    ('svc_01','Aluminium Windows & Doors','Aluminium','Sliding and openable aluminium windows and doors in powder-coated finishes, built to measure.','["Sliding / Openable / Partition","Powder coat — any shade","Clear / tinted / frosted"]',0,CURRENT_TIMESTAMP),
+    ('svc_02','uPVC Windows & Doors','uPVC','Premium uPVC sliding and casement windows — sound-proof, dust-proof and weather-proof.','["Multi-chamber, steel reinforced","Sliding / Casement / Fixed","Single / double glazed"]',1,CURRENT_TIMESTAMP),
+    ('svc_03','Modular Kitchens','Furniture','Custom modular kitchens with smart storage, durable finishes and quality fittings.','["BWP / BWR ply","Laminate / Acrylic / PU","Soft-close hinges & channels"]',2,CURRENT_TIMESTAMP),
+    ('svc_04','Wardrobes & Storage','Furniture','Sliding and openable wardrobes, TV units and storage built to fit your room perfectly.','["Sliding / Openable","Ply / MDF with laminate","Drawers, shelves, hanging"]',3,CURRENT_TIMESTAMP),
+    ('svc_05','Glass & Partitions','Glass','Toughened glass railings, shower partitions, shopfronts and office glass partitions.','["Toughened 8/10/12 mm","Shower / railing / partition","Framed / frameless"]',4,CURRENT_TIMESTAMP),
+    ('svc_06','Office & Shop Interiors','Furniture','Complete interior fit-outs for offices, showrooms and shops — furniture, glass and aluminium together.','["Furniture + glass + aluminium","Offices / showrooms / shops","Cabins, counters, storage"]',5,CURRENT_TIMESTAMP)
+    ON CONFLICT ("id") DO NOTHING`,
 ];
 
 export async function GET(req: Request) {
