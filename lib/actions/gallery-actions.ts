@@ -29,12 +29,6 @@ export async function createGalleryItem(
   const file = formData.get("image");
 
   if (file instanceof File && file.size > 0) {
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      return {
-        error:
-          "Photo upload isn't switched on yet. Either enable Blob storage in Vercel, or paste an image link instead.",
-      };
-    }
     try {
       const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
       const blob = await put(`gallery/${Date.now()}-${safe}`, file, {
@@ -42,7 +36,10 @@ export async function createGalleryItem(
       });
       imageUrl = blob.url;
     } catch {
-      return { error: "Upload failed. Please try again, or paste an image link." };
+      return {
+        error:
+          "Photo upload failed. Make sure a Blob store is connected to this project in Vercel and you've redeployed — or paste an image link instead.",
+      };
     }
   }
 

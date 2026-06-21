@@ -5,7 +5,12 @@ import GalleryUploadForm from "@/components/admin/GalleryUploadForm";
 export const dynamic = "force-dynamic";
 
 export default async function GalleryAdminPage() {
-  const blobOn = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  // Blob can be connected via a read-write token OR via OIDC (store ID).
+  const blobOn = Boolean(
+    process.env.BLOB_READ_WRITE_TOKEN ||
+      process.env.BLOB_STORE_ID ||
+      process.env.VERCEL_OIDC_TOKEN,
+  );
   let items: Awaited<ReturnType<typeof prisma.galleryItem.findMany>> = [];
   try {
     items = await prisma.galleryItem.findMany({

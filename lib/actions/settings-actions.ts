@@ -17,7 +17,7 @@ export async function saveSettings(formData: FormData) {
   // Logo: upload a new file to Blob if provided, else keep the existing URL.
   let logoUrl = get("logoUrl");
   const logo = formData.get("logo");
-  if (logo instanceof File && logo.size > 0 && process.env.BLOB_READ_WRITE_TOKEN) {
+  if (logo instanceof File && logo.size > 0) {
     try {
       const safe = logo.name.replace(/[^a-zA-Z0-9._-]/g, "_");
       const blob = await put(`logo/${Date.now()}-${safe}`, logo, { access: "public" });
