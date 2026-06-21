@@ -138,3 +138,30 @@ model GalleryItem {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 }
+
+/// A customer review/testimonial shown on the website (admin-managed).
+model Review {
+  id        String   @id @default(cuid())
+  name      String
+  location  String?
+  quote     String
+  rating    Int      @default(5)
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// An enquiry submitted through the website contact form.
+model Lead {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  message   String
+  source    String   @default("website")
+  status    String   @default("NEW") // NEW | CONTACTED | DONE
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

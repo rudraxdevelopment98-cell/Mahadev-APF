@@ -31,9 +31,14 @@ export default function Navbar({ site }: { site: SiteSettings }) {
         }`}
       >
         <Link href="/" className="flex items-center gap-3" aria-label={site.name}>
-          <span className="grid h-9 w-9 place-items-center rounded-lg border border-gold/50 font-heading text-sm font-bold text-gold">
-            {site.name.charAt(0) || "M"}
-          </span>
+          {site.logoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={site.logoUrl} alt={site.name} className="h-9 w-auto" />
+          ) : (
+            <span className="grid h-9 w-9 place-items-center rounded-lg border border-gold/50 font-heading text-sm font-bold text-gold">
+              {site.name.charAt(0) || "M"}
+            </span>
+          )}
           <span className="font-heading text-base font-bold tracking-wide sm:text-lg">
             {site.name}
           </span>

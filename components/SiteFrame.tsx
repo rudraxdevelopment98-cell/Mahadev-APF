@@ -5,6 +5,7 @@ import Cursor from "@/components/Cursor";
 import ScrollProgress from "@/components/ScrollProgress";
 import Navbar from "@/components/Navbar";
 import MobileNav from "@/components/MobileNav";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import Footer from "@/components/Footer";
 import type { SiteSettings } from "@/lib/settings";
 
@@ -33,6 +34,7 @@ export default function SiteFrame({
       <Footer site={site} />
       {/* keeps the floating mobile nav from covering the footer */}
       <div className="h-24 lg:hidden" />
+      <WhatsAppButton phone={site.whatsapp} />
       <MobileNav />
     </>
   );

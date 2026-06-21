@@ -62,6 +62,44 @@ export default async function SettingsPage({
           </div>
         </section>
 
+        {/* Branding & reviews */}
+        <section className="space-y-4 rounded-2xl border border-white/10 bg-ink-soft/40 p-6">
+          <h2 className="font-heading text-lg font-bold">Logo &amp; Reviews</h2>
+          <input type="hidden" name="logoUrl" defaultValue={s.logoUrl} />
+          <div>
+            <label className={label}>Shop logo</label>
+            {s.logoUrl && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={s.logoUrl}
+                alt="Current logo"
+                className="mb-2 h-12 w-auto rounded bg-white/10 p-1"
+              />
+            )}
+            <input
+              name="logo"
+              type="file"
+              accept="image/*"
+              className="w-full text-sm text-muted file:mr-3 file:rounded-full file:border-0 file:bg-gold file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink"
+            />
+            <p className="mt-1 text-xs text-muted">
+              Optional. Shown in the header, footer and on bills. Leave empty to use the letter mark.
+            </p>
+          </div>
+          <div>
+            <label className={label}>Google review link</label>
+            <input
+              name="googleReviewUrl"
+              defaultValue={s.googleReviewUrl}
+              placeholder="https://g.page/r/…  (your 'write a review' link)"
+              className={input}
+            />
+            <p className="mt-1 text-xs text-muted">
+              Adds a &ldquo;Review us on Google&rdquo; button on the website.
+            </p>
+          </div>
+        </section>
+
         {/* Contact */}
         <section className="space-y-4 rounded-2xl border border-white/10 bg-ink-soft/40 p-6">
           <h2 className="font-heading text-lg font-bold">Contact</h2>

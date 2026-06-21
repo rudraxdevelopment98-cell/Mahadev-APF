@@ -18,8 +18,8 @@ export default function Contact({ site }: { site: SiteSettings }) {
     const form = new FormData(e.currentTarget);
     const result = await submitLead({
       name: String(form.get("name") ?? ""),
+      phone: String(form.get("phone") ?? ""),
       email: String(form.get("email") ?? ""),
-      company: String(form.get("company") ?? ""),
       message: String(form.get("message") ?? ""),
     });
     setSubmitting(false);
@@ -112,17 +112,19 @@ export default function Contact({ site }: { site: SiteSettings }) {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5">
-                <Field label="Full name" name="name" placeholder="Jane Doe" />
+                <Field label="Your name" name="name" placeholder="Your name" />
                 <Field
-                  label="Work email"
-                  name="email"
-                  type="email"
-                  placeholder="jane@company.com"
+                  label="Phone / WhatsApp"
+                  name="phone"
+                  type="tel"
+                  placeholder="Your phone number"
                 />
                 <Field
-                  label="Company"
-                  name="company"
-                  placeholder="Company name"
+                  label="Email (optional)"
+                  name="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  required={false}
                 />
                 <div>
                   <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-muted">
@@ -162,11 +164,13 @@ function Field({
   name,
   type = "text",
   placeholder,
+  required = true,
 }: {
   label: string;
   name: string;
   type?: string;
   placeholder?: string;
+  required?: boolean;
 }) {
   return (
     <div>
@@ -176,7 +180,7 @@ function Field({
       <input
         name={name}
         type={type}
-        required
+        required={required}
         placeholder={placeholder}
         className="w-full rounded-xl border border-white/10 bg-ink/60 px-4 py-3 text-sm outline-none transition-colors placeholder:text-white/30 focus:border-gold"
       />

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { put } from "@vercel/blob";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -12,6 +13,19 @@ export async function saveSettings(formData: FormData) {
   if (!user) redirect("/admin/login");
 
   const get = (k: string) => String(formData.get(k) ?? "").trim();
+
+  // Logo: upload a new file to Blob if provided, else keep the existing URL.
+  let logoUrl = get("logoUrl");
+  const logo = formData.get("logo");
+  if (logo instanceof File && logo.size > 0 && process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const safe = logo.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const blob = await put(`logo/${Date.now()}-${safe}`, logo, { access: "public" });
+      logoUrl = blob.url;
+    } catch {
+      // keep existing logo on failure
+    }
+  }
 
   const num = (k: string) => Number(formData.get(k)) || 0;
   const stats = [0, 1, 2, 3].map((i) => ({
@@ -47,6 +61,8 @@ export async function saveSettings(formData: FormData) {
     aboutPara1: get("aboutPara1"),
     aboutPara2: get("aboutPara2"),
     stats,
+    logoUrl,
+    googleReviewUrl: get("googleReviewUrl"),
   };
 
   const json = data as unknown as Prisma.InputJsonObject;

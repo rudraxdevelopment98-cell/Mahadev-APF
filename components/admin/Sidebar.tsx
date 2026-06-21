@@ -12,6 +12,8 @@ const links = [
   { href: "/admin/materials", label: "Rate List", icon: "📦" },
   { href: "/admin/services", label: "Services", icon: "🛠️" },
   { href: "/admin/gallery", label: "Gallery", icon: "🖼️" },
+  { href: "/admin/reviews", label: "Reviews", icon: "⭐" },
+  { href: "/admin/leads", label: "Enquiries", icon: "📩" },
   { href: "/admin/settings", label: "Settings", icon: "⚙️" },
 ];
 

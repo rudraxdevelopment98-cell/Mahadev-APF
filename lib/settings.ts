@@ -41,6 +41,9 @@ export type SiteSettings = {
   aboutPara2: string;
   // Homepage — numbers
   stats: StatItem[];
+  // Branding & reviews
+  logoUrl: string;
+  googleReviewUrl: string;
 };
 
 export const defaultSettings: SiteSettings = {
@@ -72,6 +75,8 @@ export const defaultSettings: SiteSettings = {
   aboutPara2:
     "From a free measurement and design to clean, on-time fitting by our own team, we make the whole process simple — and back it with proper GST bills and friendly after-sales service.",
   stats: defaultStats,
+  logoUrl: "",
+  googleReviewUrl: "",
 };
 
 /** Merge a partial (from the database) over the defaults. */

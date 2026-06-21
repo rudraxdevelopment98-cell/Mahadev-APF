@@ -2,15 +2,22 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { testimonials } from "@/lib/data";
+import type { ReviewItem } from "@/lib/reviews";
 import Reveal from "./Reveal";
 
-export default function Testimonials() {
+export default function Testimonials({
+  reviews,
+  googleUrl,
+}: {
+  reviews: ReviewItem[];
+  googleUrl?: string;
+}) {
   const [index, setIndex] = useState(0);
-  const active = testimonials[index];
+  if (!reviews.length) return null;
+  const active = reviews[Math.min(index, reviews.length - 1)];
 
   const go = (dir: number) =>
-    setIndex((i) => (i + dir + testimonials.length) % testimonials.length);
+    setIndex((i) => (i + dir + reviews.length) % reviews.length);
 
   return (
     <section id="testimonials" className="container-px py-28 md:py-36">
@@ -18,15 +25,27 @@ export default function Testimonials() {
         <div>
           <Reveal>
             <span className="text-xs uppercase tracking-[0.3em] text-gold">
-              Client Confidence
+              Customer Reviews
             </span>
           </Reveal>
           <Reveal index={1}>
             <h2 className="mt-4 font-heading text-4xl font-bold leading-tight text-balance md:text-5xl">
-              The standard our clients{" "}
-              <span className="text-gold-gradient">stake their projects on</span>.
+              What our customers{" "}
+              <span className="text-gold-gradient">say about us</span>.
             </h2>
           </Reveal>
+          {googleUrl && (
+            <Reveal index={2}>
+              <a
+                href={googleUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex items-center gap-2 rounded-full border border-gold/50 px-5 py-2.5 text-sm text-gold transition-colors hover:bg-gold hover:text-ink"
+              >
+                ★ Review us on Google
+              </a>
+            </Reveal>
+          )}
         </div>
 
         <Reveal index={2}>
@@ -44,6 +63,12 @@ export default function Testimonials() {
                   transition={{ duration: 0.5 }}
                   className="-mt-6"
                 >
+                  <p className="mb-3 text-gold">
+                    {"★".repeat(active.rating)}
+                    <span className="text-white/20">
+                      {"★".repeat(5 - active.rating)}
+                    </span>
+                  </p>
                   <p className="text-lg leading-relaxed md:text-xl">
                     {active.quote}
                   </p>
@@ -51,18 +76,20 @@ export default function Testimonials() {
                     <p className="font-heading font-bold text-gold">
                       {active.name}
                     </p>
-                    <p className="text-sm text-muted">{active.role}</p>
+                    {active.location && (
+                      <p className="text-sm text-muted">{active.location}</p>
+                    )}
                   </footer>
                 </motion.blockquote>
               </AnimatePresence>
             </div>
 
             <div className="mt-8 flex items-center justify-between">
-              <div className="flex gap-2">
-                {testimonials.map((_, i) => (
+              <div className="flex flex-wrap gap-2">
+                {reviews.map((_, i) => (
                   <button
                     key={i}
-                    aria-label={`Testimonial ${i + 1}`}
+                    aria-label={`Review ${i + 1}`}
                     onClick={() => setIndex(i)}
                     className={`h-1.5 rounded-full transition-all ${
                       i === index ? "w-8 bg-gold" : "w-2 bg-white/20"

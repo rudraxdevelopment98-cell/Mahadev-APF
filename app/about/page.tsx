@@ -6,6 +6,7 @@ import WhyChooseUs from "@/components/WhyChooseUs";
 import Testimonials from "@/components/Testimonials";
 import { company, milestones } from "@/lib/data";
 import { getSettings } from "@/lib/settings-server";
+import { getReviews } from "@/lib/reviews-server";
 
 export const metadata: Metadata = {
   title: "About",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const site = await getSettings();
+  const [site, reviews] = await Promise.all([getSettings(), getReviews()]);
   return (
     <main>
       <PageHeader
@@ -69,7 +70,7 @@ export default async function AboutPage() {
 
       <Stats stats={site.stats} />
       <WhyChooseUs />
-      <Testimonials />
+      <Testimonials reviews={reviews} googleUrl={site.googleReviewUrl} />
     </main>
   );
 }

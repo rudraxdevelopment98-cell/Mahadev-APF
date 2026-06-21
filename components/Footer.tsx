@@ -9,9 +9,14 @@ export default function Footer({ site }: { site: SiteSettings }) {
         <div className="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-3">
-              <span className="grid h-9 w-9 place-items-center rounded-lg border border-gold/50 font-heading text-sm font-bold text-gold">
-                {site.name.charAt(0) || "M"}
-              </span>
+              {site.logoUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={site.logoUrl} alt={site.name} className="h-9 w-auto" />
+              ) : (
+                <span className="grid h-9 w-9 place-items-center rounded-lg border border-gold/50 font-heading text-sm font-bold text-gold">
+                  {site.name.charAt(0) || "M"}
+                </span>
+              )}
               <span className="font-heading text-lg font-bold">{site.name}</span>
             </div>
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-muted">

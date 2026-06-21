@@ -10,6 +10,8 @@ const links = [
   { href: "/admin/materials", label: "Rate List" },
   { href: "/admin/services", label: "Services" },
   { href: "/admin/gallery", label: "Gallery" },
+  { href: "/admin/reviews", label: "Reviews" },
+  { href: "/admin/leads", label: "Enquiries" },
   { href: "/admin/settings", label: "Settings" },
 ];
 

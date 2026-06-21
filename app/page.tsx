@@ -10,9 +10,14 @@ import Gallery from "@/components/Gallery";
 import Contact from "@/components/Contact";
 import { getSettings } from "@/lib/settings-server";
 import { getGallery } from "@/lib/gallery-server";
+import { getReviews } from "@/lib/reviews-server";
 
 export default async function Home() {
-  const [site, gallery] = await Promise.all([getSettings(), getGallery()]);
+  const [site, gallery, reviews] = await Promise.all([
+    getSettings(),
+    getGallery(),
+    getReviews(),
+  ]);
   return (
     <>
       <Preloader />
@@ -24,7 +29,7 @@ export default async function Home() {
         <Industries />
         <WhyChooseUs />
         <Gallery items={gallery} />
-        <Testimonials />
+        <Testimonials reviews={reviews} googleUrl={site.googleReviewUrl} />
         <Contact site={site} />
       </main>
     </>
