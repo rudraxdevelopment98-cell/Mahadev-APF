@@ -303,17 +303,13 @@ export default function InvoiceBuilder({
                       <label className="mb-1 block text-[11px] uppercase tracking-wide text-muted">
                         Unit
                       </label>
-                      <select
+                      <input
+                        list="mapf-units"
                         value={r.unit}
                         onChange={(e) => updateRow(r.key, { unit: e.target.value })}
+                        placeholder="sqft / nos / set…"
                         className={inputCls}
-                      >
-                        {units.map((u) => (
-                          <option key={u} value={u}>
-                            {u}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
 
                     <div>
@@ -391,13 +387,24 @@ export default function InvoiceBuilder({
             })}
           </div>
 
+          {/* Unit suggestions — typing a custom unit (basket, piece, lot…) is allowed */}
+          <datalist id="mapf-units">
+            {units.map((u) => (
+              <option key={u} value={u} />
+            ))}
+          </datalist>
+
           <button
             type="button"
             onClick={() => setRows((rs) => [...rs, emptyRow()])}
-            className="mt-3 rounded-lg border border-white/15 px-3 py-1.5 text-sm text-muted hover:text-paper"
+            className="mt-3 rounded-lg border border-gold/40 px-4 py-2 text-sm font-medium text-gold hover:bg-gold hover:text-ink"
           >
-            + Add row
+            + Add another item / extra charge
           </button>
+          <p className="mt-2 text-xs text-muted">
+            Add anything — windows in sqft, or extras like hardware, basket,
+            fittings. Type the name, unit, quantity and rate.
+          </p>
         </div>
 
         <textarea
