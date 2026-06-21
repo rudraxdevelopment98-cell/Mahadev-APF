@@ -230,3 +230,15 @@ INSERT INTO "Service" ("id","title","category","blurb","points","order","updated
   ('svc_05','Glass & Partitions','Glass','Toughened glass railings, shower partitions, shopfronts and office glass partitions.','["Toughened 8/10/12 mm","Shower / railing / partition","Framed / frameless"]',4,CURRENT_TIMESTAMP),
   ('svc_06','Office & Shop Interiors','Furniture','Complete interior fit-outs for offices, showrooms and shops — furniture, glass and aluminium together.','["Furniture + glass + aluminium","Offices / showrooms / shops","Cabins, counters, storage"]',5,CURRENT_TIMESTAMP)
 ON CONFLICT ("id") DO NOTHING;
+
+-- Default spaces (edit & add photos in Admin > Spaces)
+INSERT INTO "Space" ("id","name","body","order","updatedAt") VALUES
+  ('spc_01','Homes & Apartments','Windows, wardrobes, modular kitchens and glass works for flats and bungalows.',0,CURRENT_TIMESTAMP),
+  ('spc_02','Offices','Workstations, cabins, glass partitions and aluminium fronts for workplaces.',1,CURRENT_TIMESTAMP),
+  ('spc_03','Showrooms & Shops','Shopfront glazing, display units and storage built to pull customers in.',2,CURRENT_TIMESTAMP),
+  ('spc_04','Restaurants & Cafes','Custom seating, counters, partitions and durable, easy-clean surfaces.',3,CURRENT_TIMESTAMP),
+  ('spc_05','Builders & Contractors','Bulk windows, doors and fit-outs for residential and commercial projects.',4,CURRENT_TIMESTAMP),
+  ('spc_06','Hospitals & Clinics','Hygienic partitions, storage and aluminium works for healthcare spaces.',5,CURRENT_TIMESTAMP),
+  ('spc_07','Schools & Institutes','Sturdy furniture, windows and partitions made to handle daily use.',6,CURRENT_TIMESTAMP),
+  ('spc_08','Hotels & Resorts','Room furniture, wardrobes and glass works with a premium finish.',7,CURRENT_TIMESTAMP)
+ON CONFLICT ("id") DO NOTHING;
