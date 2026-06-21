@@ -1,10 +1,33 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { createInvoice } from "@/lib/actions/invoice-actions";
+import { createInvoice, updateInvoice } from "@/lib/actions/invoice-actions";
 import type { CreateInvoiceInput } from "@/lib/invoice-types";
 import { computeTotals, formatINR } from "@/lib/money";
 import { units } from "@/lib/shop";
+
+export type InitialInvoice = {
+  type: "TAX" | "ESTIMATE";
+  interState: boolean;
+  customerId: string;
+  billName: string;
+  billPhone: string;
+  billGstin: string;
+  billAddress: string;
+  date: string;
+  discount: number;
+  discountType: "AMOUNT" | "PERCENT";
+  roundOff: boolean;
+  notes: string;
+  items: {
+    description: string;
+    hsn: string;
+    unit: string;
+    quantity: number;
+    rate: number;
+    taxRate: number;
+  }[];
+};
 
 type CustomerOpt = {
   id: string;
@@ -49,21 +72,37 @@ const emptyRow = (): Row => ({
 export default function InvoiceBuilder({
   customers,
   materials,
+  mode = "create",
+  invoiceId,
+  initial,
 }: {
   customers: CustomerOpt[];
   materials: MaterialOpt[];
+  mode?: "create" | "edit";
+  invoiceId?: string;
+  initial?: InitialInvoice;
 }) {
-  const [type, setType] = useState<"TAX" | "ESTIMATE">("TAX");
-  const [interState, setInterState] = useState(false);
-  const [customerId, setCustomerId] = useState("");
-  const [billName, setBillName] = useState("");
-  const [billPhone, setBillPhone] = useState("");
-  const [billGstin, setBillGstin] = useState("");
-  const [billAddress, setBillAddress] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [discount, setDiscount] = useState(0);
-  const [notes, setNotes] = useState("");
-  const [rows, setRows] = useState<Row[]>([emptyRow()]);
+  const [type, setType] = useState<"TAX" | "ESTIMATE">(initial?.type ?? "TAX");
+  const [interState, setInterState] = useState(initial?.interState ?? false);
+  const [customerId, setCustomerId] = useState(initial?.customerId ?? "");
+  const [billName, setBillName] = useState(initial?.billName ?? "");
+  const [billPhone, setBillPhone] = useState(initial?.billPhone ?? "");
+  const [billGstin, setBillGstin] = useState(initial?.billGstin ?? "");
+  const [billAddress, setBillAddress] = useState(initial?.billAddress ?? "");
+  const [date, setDate] = useState(
+    initial?.date ?? new Date().toISOString().slice(0, 10),
+  );
+  const [discount, setDiscount] = useState(initial?.discount ?? 0);
+  const [discountType, setDiscountType] = useState<"AMOUNT" | "PERCENT">(
+    initial?.discountType ?? "AMOUNT",
+  );
+  const [roundOff, setRoundOff] = useState(initial?.roundOff ?? true);
+  const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [rows, setRows] = useState<Row[]>(
+    initial && initial.items.length
+      ? initial.items.map((i) => ({ key: rowSeq++, ...i }))
+      : [emptyRow()],
+  );
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -77,9 +116,15 @@ export default function InvoiceBuilder({
           rate: Number(r.rate) || 0,
           taxRate: isTax ? Number(r.taxRate) || 0 : 0,
         })),
-        { isTax, interState, discount: Number(discount) || 0 },
+        {
+          isTax,
+          interState,
+          discount: Number(discount) || 0,
+          discountType,
+          roundOff,
+        },
       ),
-    [rows, isTax, interState, discount],
+    [rows, isTax, interState, discount, discountType, roundOff],
   );
 
   function pickCustomer(id: string) {
@@ -135,6 +180,8 @@ export default function InvoiceBuilder({
       interState: isTax ? interState : false,
       date,
       discount: Number(discount) || 0,
+      discountType,
+      roundOff,
       notes,
       items: items.map((r) => ({
         description: r.description,
@@ -148,7 +195,11 @@ export default function InvoiceBuilder({
 
     startTransition(async () => {
       try {
-        await createInvoice(payload);
+        if (mode === "edit" && invoiceId) {
+          await updateInvoice(invoiceId, payload);
+        } else {
+          await createInvoice(payload);
+        }
       } catch (e) {
         // redirect() throws internally on success; only surface real errors.
         const msg = e instanceof Error ? e.message : "";
@@ -419,17 +470,39 @@ export default function InvoiceBuilder({
       {/* Right: summary */}
       <div className="h-fit space-y-3 rounded-2xl border border-gold/20 bg-gold/5 p-5 lg:sticky lg:top-6">
         <h2 className="font-heading text-lg font-bold">Summary</h2>
-        <Row label="Sub-total" value={formatINR(totals.subTotal)} />
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted">Discount ₹</span>
-          <input
-            type="number"
-            step="0.01"
-            value={discount}
-            onChange={(e) => setDiscount(Number(e.target.value))}
-            className={inputCls + " w-28 text-right"}
-          />
+        <Row label="Items total" value={formatINR(totals.gross)} />
+
+        <div className="flex items-center justify-between gap-2 text-sm">
+          <span className="text-muted">Discount</span>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              step="0.01"
+              value={discount}
+              onChange={(e) => setDiscount(Number(e.target.value))}
+              className={inputCls + " w-20 text-right"}
+            />
+            <div className="flex overflow-hidden rounded-lg border border-white/10">
+              {(["AMOUNT", "PERCENT"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setDiscountType(t)}
+                  className={`px-2 py-1.5 text-xs ${
+                    discountType === t ? "bg-gold text-ink" : "text-muted"
+                  }`}
+                >
+                  {t === "AMOUNT" ? "₹" : "%"}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
+        {totals.discountValue > 0 && (
+          <Row label="Discount applied" value={`– ${formatINR(totals.discountValue)}`} />
+        )}
+
+        <Row label="Taxable" value={formatINR(totals.subTotal)} />
         {isTax && !interState && (
           <>
             <Row label="CGST" value={formatINR(totals.cgst)} />
@@ -437,6 +510,22 @@ export default function InvoiceBuilder({
           </>
         )}
         {isTax && interState && <Row label="IGST" value={formatINR(totals.igst)} />}
+
+        <label className="flex items-center justify-between text-sm">
+          <span className="text-muted">Round off to nearest ₹</span>
+          <input
+            type="checkbox"
+            checked={roundOff}
+            onChange={(e) => setRoundOff(e.target.checked)}
+          />
+        </label>
+        {roundOff && totals.roundOff !== 0 && (
+          <Row
+            label="Round off"
+            value={`${totals.roundOff > 0 ? "+" : ""}${formatINR(totals.roundOff)}`}
+          />
+        )}
+
         <div className="my-2 border-t border-white/10" />
         <div className="flex items-center justify-between">
           <span className="font-heading font-bold">Grand Total</span>
@@ -453,7 +542,7 @@ export default function InvoiceBuilder({
           disabled={pending}
           className="mt-2 w-full rounded-full bg-gold py-3 text-sm font-semibold text-ink transition-colors hover:bg-gold-soft disabled:opacity-60"
         >
-          {pending ? "Saving…" : "Save Invoice"}
+          {pending ? "Saving…" : mode === "edit" ? "Update Invoice" : "Save Invoice"}
         </button>
       </div>
     </div>

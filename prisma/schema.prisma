@@ -67,8 +67,10 @@ model Invoice {
   interState  Boolean       @default(false) // true => IGST, false => CGST+SGST
   notes       String?
   discount    Float         @default(0)
+  discountType String       @default("AMOUNT") // AMOUNT | PERCENT
   subTotal    Float         @default(0)
   taxTotal    Float         @default(0)
+  roundOff    Float         @default(0)
   grandTotal  Float         @default(0)
   items       InvoiceItem[]
   payments    Payment[]

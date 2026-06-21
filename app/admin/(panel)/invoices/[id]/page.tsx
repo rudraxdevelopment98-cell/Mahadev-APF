@@ -7,9 +7,20 @@ import {
   addPayment,
   setInvoiceStatus,
   deleteInvoice,
+  duplicateInvoice,
 } from "@/lib/actions/invoice-actions";
+import { shop } from "@/lib/shop";
 
 export const dynamic = "force-dynamic";
+
+/** Build a wa.me link to send the customer a short invoice summary. */
+function whatsappLink(phone: string | null, text: string): string | null {
+  if (!phone) return null;
+  let digits = phone.replace(/\D/g, "");
+  if (digits.length === 10) digits = "91" + digits; // assume India
+  if (digits.length < 11) return null;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
 
 const inputCls =
   "w-full rounded-lg border border-white/10 bg-ink/60 px-3 py-2 text-sm outline-none focus:border-gold";
@@ -29,6 +40,14 @@ export default async function InvoiceDetailPage({
   const paid = inv.payments.reduce((s, p) => s + p.amount, 0);
   const balance = Math.max(inv.grandTotal - paid, 0);
 
+  const waText =
+    `${shop.name}\n${inv.type === "TAX" ? "Tax Invoice" : "Estimate"}: ${inv.number}\n` +
+    `Date: ${inv.date.toLocaleDateString("en-IN")}\n` +
+    `Total: ${formatINR(inv.grandTotal)}` +
+    (balance > 0 ? `\nBalance due: ${formatINR(balance)}` : `\nStatus: Paid`) +
+    `\nThank you!`;
+  const wa = whatsappLink(inv.billPhone, waText);
+
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -45,13 +64,34 @@ export default async function InvoiceDetailPage({
             {inv.date.toLocaleDateString("en-IN")}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link
             href={`/admin/invoices/${inv.id}/print`}
             className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-ink hover:bg-gold-soft"
           >
             Print / PDF
           </Link>
+          {wa && (
+            <a
+              href={wa}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full border border-emerald-400/40 px-4 py-2.5 text-sm text-emerald-300 hover:bg-emerald-400/10"
+            >
+              WhatsApp
+            </a>
+          )}
+          <Link
+            href={`/admin/invoices/${inv.id}/edit`}
+            className="rounded-full border border-white/15 px-4 py-2.5 text-sm text-paper hover:border-gold hover:text-gold"
+          >
+            Edit
+          </Link>
+          <form action={duplicateInvoice.bind(null, inv.id)}>
+            <button className="rounded-full border border-white/15 px-4 py-2.5 text-sm text-paper hover:border-gold hover:text-gold">
+              Duplicate
+            </button>
+          </form>
           {inv.status !== "CANCELLED" && (
             <form action={setInvoiceStatus.bind(null, inv.id, "CANCELLED")}>
               <button className="rounded-full border border-white/15 px-4 py-2.5 text-sm text-muted hover:border-red-400/40 hover:text-red-300">
@@ -127,11 +167,14 @@ export default async function InvoiceDetailPage({
         <div className="space-y-6">
           <div className="rounded-2xl border border-gold/20 bg-gold/5 p-5">
             <Line label="Sub-total" value={formatINR(inv.subTotal)} />
-            {inv.discount > 0 && (
-              <Line label="Discount" value={`– ${formatINR(inv.discount)}`} />
-            )}
             {inv.type === "TAX" && (
               <Line label="Tax" value={formatINR(inv.taxTotal)} />
+            )}
+            {inv.roundOff !== 0 && (
+              <Line
+                label="Round off"
+                value={`${inv.roundOff > 0 ? "+" : ""}${formatINR(inv.roundOff)}`}
+              />
             )}
             <div className="my-2 border-t border-white/10" />
             <Line label="Grand Total" value={formatINR(inv.grandTotal)} strong />

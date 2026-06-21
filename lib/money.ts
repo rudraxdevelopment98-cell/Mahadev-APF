@@ -20,62 +20,76 @@ export type LineInput = {
 };
 
 export type Totals = {
+  gross: number;
+  discountValue: number; // resolved rupee discount
   subTotal: number;
   taxTotal: number;
   cgst: number;
   sgst: number;
   igst: number;
+  roundOff: number;
   grandTotal: number;
 };
 
 /**
  * Compute invoice totals.
- * @param isTax     whether GST is applied (tax invoice vs plain estimate)
- * @param interState true => IGST, false => CGST + SGST (split equally)
- * @param discount   flat amount subtracted from the taxable value
+ * @param isTax        whether GST is applied (tax invoice vs plain estimate)
+ * @param interState   true => IGST, false => CGST + SGST (split equally)
+ * @param discount     discount value (rupees, or percent if discountType=PERCENT)
+ * @param discountType "AMOUNT" (flat ₹) or "PERCENT" (% of gross)
+ * @param roundOff     whether to round the grand total to the nearest rupee
  */
 export function computeTotals(
   lines: LineInput[],
-  opts: { isTax: boolean; interState: boolean; discount?: number },
+  opts: {
+    isTax: boolean;
+    interState: boolean;
+    discount?: number;
+    discountType?: "AMOUNT" | "PERCENT";
+    roundOff?: boolean;
+  },
 ): Totals {
   const gross = lines.reduce(
     (sum, l) => sum + (Number(l.quantity) || 0) * (Number(l.rate) || 0),
     0,
   );
-  const discount = Math.min(Number(opts.discount) || 0, gross);
-  const subTotal = round2(gross - discount);
 
-  if (!opts.isTax) {
-    return {
-      subTotal,
-      taxTotal: 0,
-      cgst: 0,
-      sgst: 0,
-      igst: 0,
-      grandTotal: subTotal,
-    };
-  }
+  const rawDiscount = Number(opts.discount) || 0;
+  const discountValue =
+    opts.discountType === "PERCENT"
+      ? round2((gross * rawDiscount) / 100)
+      : Math.min(rawDiscount, gross);
 
-  // Apply the same proportional discount to each line before taxing it.
-  const factor = gross > 0 ? (gross - discount) / gross : 1;
+  const subTotal = round2(gross - discountValue);
+
   let taxTotal = 0;
-  for (const l of lines) {
-    const lineTaxable = (Number(l.quantity) || 0) * (Number(l.rate) || 0) * factor;
-    taxTotal += (lineTaxable * (Number(l.taxRate) || 0)) / 100;
+  if (opts.isTax) {
+    const factor = gross > 0 ? (gross - discountValue) / gross : 1;
+    for (const l of lines) {
+      const lineTaxable = (Number(l.quantity) || 0) * (Number(l.rate) || 0) * factor;
+      taxTotal += (lineTaxable * (Number(l.taxRate) || 0)) / 100;
+    }
+    taxTotal = round2(taxTotal);
   }
-  taxTotal = round2(taxTotal);
 
-  const cgst = opts.interState ? 0 : round2(taxTotal / 2);
-  const sgst = opts.interState ? 0 : round2(taxTotal - cgst);
-  const igst = opts.interState ? taxTotal : 0;
+  const cgst = opts.isTax && !opts.interState ? round2(taxTotal / 2) : 0;
+  const sgst = opts.isTax && !opts.interState ? round2(taxTotal - cgst) : 0;
+  const igst = opts.isTax && opts.interState ? taxTotal : 0;
+
+  const beforeRound = round2(subTotal + taxTotal);
+  const rounded = opts.roundOff ? Math.round(beforeRound) : beforeRound;
+  const roundOff = opts.roundOff ? round2(rounded - beforeRound) : 0;
 
   return {
+    gross: round2(gross),
+    discountValue,
     subTotal,
     taxTotal,
     cgst,
     sgst,
     igst,
-    grandTotal: round2(subTotal + taxTotal),
+    roundOff,
+    grandTotal: round2(rounded),
   };
 }
 

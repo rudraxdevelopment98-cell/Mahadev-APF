@@ -17,6 +17,8 @@ export type CreateInvoiceInput = {
   interState: boolean;
   date?: string;
   discount: number;
+  discountType: "AMOUNT" | "PERCENT";
+  roundOff: boolean;
   notes?: string;
   items: InvoiceItemInput[];
 };

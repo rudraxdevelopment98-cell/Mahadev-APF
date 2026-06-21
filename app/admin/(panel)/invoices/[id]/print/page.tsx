@@ -154,6 +154,12 @@ export default async function InvoicePrintPage({
             {isTax && inv.interState && (
               <Row label="IGST" value={formatINR(inv.taxTotal)} />
             )}
+            {inv.roundOff !== 0 && (
+              <Row
+                label="Round off"
+                value={`${inv.roundOff > 0 ? "+" : ""}${formatINR(inv.roundOff)}`}
+              />
+            )}
             <div className="my-1 border-t border-black" />
             <Row label="Grand Total" value={formatINR(inv.grandTotal)} bold />
             {paid > 0 && (

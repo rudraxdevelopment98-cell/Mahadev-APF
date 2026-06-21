@@ -6,31 +6,42 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [invoices, customerCount, materialCount, payAgg, recent] =
-    await Promise.all([
-      prisma.invoice.findMany({
-        where: { status: { not: "CANCELLED" } },
-        select: { grandTotal: true },
-      }),
-      prisma.customer.count(),
-      prisma.material.count(),
-      prisma.payment.aggregate({ _sum: { amount: true } }),
-      prisma.invoice.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 6,
-        include: { payments: { select: { amount: true } } },
-      }),
-    ]);
+  const [allInvoices, customerCount, materialCount] = await Promise.all([
+    prisma.invoice.findMany({
+      where: { status: { not: "CANCELLED" } },
+      orderBy: { createdAt: "desc" },
+      include: { payments: { select: { amount: true } } },
+    }),
+    prisma.customer.count(),
+    prisma.material.count(),
+  ]);
 
-  const totalSales = invoices.reduce((s, i) => s + i.grandTotal, 0);
-  const totalReceived = payAgg._sum.amount ?? 0;
+  const withBalance = allInvoices.map((i) => {
+    const paid = i.payments.reduce((s, p) => s + p.amount, 0);
+    return { inv: i, paid, balance: Math.max(i.grandTotal - paid, 0) };
+  });
+
+  const totalSales = allInvoices.reduce((s, i) => s + i.grandTotal, 0);
+  const totalReceived = withBalance.reduce((s, x) => s + x.paid, 0);
   const outstanding = Math.max(totalSales - totalReceived, 0);
 
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const thisMonthSales = allInvoices
+    .filter((i) => i.date >= monthStart)
+    .reduce((s, i) => s + i.grandTotal, 0);
+
+  const recent = allInvoices.slice(0, 6);
+  const pending = withBalance
+    .filter((x) => x.balance > 0)
+    .sort((a, b) => b.balance - a.balance)
+    .slice(0, 6);
+
   const cards = [
-    { label: "Total Sales", value: formatINR(totalSales), accent: true },
+    { label: "This Month", value: formatINR(thisMonthSales), accent: true },
+    { label: "Total Sales", value: formatINR(totalSales) },
     { label: "Received", value: formatINR(totalReceived) },
     { label: "Outstanding Dues", value: formatINR(outstanding) },
-    { label: "Invoices", value: String(invoices.length) },
   ];
 
   return (
@@ -91,8 +102,8 @@ export default async function DashboardPage() {
             .
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-white/10">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-2xl border border-white/10">
+            <table className="w-full min-w-[600px] text-sm">
               <thead className="bg-white/5 text-left text-xs uppercase tracking-wider text-muted">
                 <tr>
                   <th className="px-4 py-3">Invoice</th>
@@ -133,6 +144,43 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+
+      {pending.length > 0 && (
+        <div className="mt-10">
+          <h2 className="mb-4 font-heading text-xl font-bold">Pending Payments</h2>
+          <div className="overflow-x-auto rounded-2xl border border-white/10">
+            <table className="w-full min-w-[560px] text-sm">
+              <thead className="bg-white/5 text-left text-xs uppercase tracking-wider text-muted">
+                <tr>
+                  <th className="px-4 py-3">Invoice</th>
+                  <th className="px-4 py-3">Customer</th>
+                  <th className="px-4 py-3 text-right">Total</th>
+                  <th className="px-4 py-3 text-right">Balance Due</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pending.map(({ inv, balance }) => (
+                  <tr key={inv.id} className="border-t border-white/5 hover:bg-white/5">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/admin/invoices/${inv.id}`}
+                        className="font-medium text-gold hover:underline"
+                      >
+                        {inv.number}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">{inv.billName}</td>
+                    <td className="px-4 py-3 text-right">{formatINR(inv.grandTotal)}</td>
+                    <td className="px-4 py-3 text-right text-amber-300">
+                      {formatINR(balance)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

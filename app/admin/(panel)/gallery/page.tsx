@@ -1,10 +1,8 @@
 import { prisma } from "@/lib/db";
-import { createGalleryItem, deleteGalleryItem } from "@/lib/actions/gallery-actions";
+import { deleteGalleryItem } from "@/lib/actions/gallery-actions";
+import GalleryUploadForm from "@/components/admin/GalleryUploadForm";
 
 export const dynamic = "force-dynamic";
-
-const input =
-  "w-full rounded-lg border border-white/10 bg-ink/60 px-3 py-2 text-sm outline-none focus:border-gold";
 
 export default async function GalleryAdminPage() {
   let items: Awaited<ReturnType<typeof prisma.galleryItem.findMany>> = [];
@@ -25,23 +23,7 @@ export default async function GalleryAdminPage() {
       </p>
 
       <div className="grid gap-8 lg:grid-cols-[1.1fr_2fr]">
-        <form
-          action={createGalleryItem}
-          className="h-fit space-y-3 rounded-2xl border border-white/10 bg-ink-soft/40 p-5"
-        >
-          <h2 className="font-heading text-lg font-bold">Add Photo</h2>
-          <input name="imageUrl" placeholder="Image link (https://…) *" required className={input} />
-          <input name="caption" placeholder="Caption (e.g. Modular kitchen, Satellite)" className={input} />
-          <input name="category" placeholder="Category (e.g. Kitchen)" className={input} />
-          <input name="order" type="number" placeholder="Order (0 = first)" className={input} />
-          <button className="w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-ink hover:bg-gold-soft">
-            Add Photo
-          </button>
-          <p className="text-xs text-muted">
-            Tip: upload your photo to any image host and paste its link here.
-            Direct phone upload can be added later.
-          </p>
-        </form>
+        <GalleryUploadForm />
 
         <div>
           {items.length === 0 ? (

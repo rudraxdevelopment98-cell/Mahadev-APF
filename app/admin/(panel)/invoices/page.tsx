@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { formatINR } from "@/lib/money";
-import { StatusBadge } from "@/components/admin/StatusBadge";
+import InvoiceListClient, { type InvoiceRow } from "@/components/admin/InvoiceListClient";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +8,20 @@ export default async function InvoicesPage() {
   const invoices = await prisma.invoice.findMany({
     orderBy: { createdAt: "desc" },
     include: { payments: { select: { amount: true } } },
+  });
+
+  const rows: InvoiceRow[] = invoices.map((inv) => {
+    const paid = inv.payments.reduce((s, p) => s + p.amount, 0);
+    return {
+      id: inv.id,
+      number: inv.number,
+      billName: inv.billName,
+      type: inv.type,
+      dateLabel: inv.date.toLocaleDateString("en-IN"),
+      grandTotal: inv.grandTotal,
+      balance: Math.max(inv.grandTotal - paid, 0),
+      status: inv.status,
+    };
   });
 
   return (
@@ -23,7 +36,7 @@ export default async function InvoicesPage() {
         </Link>
       </div>
 
-      {invoices.length === 0 ? (
+      {rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-white/15 p-12 text-center text-muted">
           No invoices yet.{" "}
           <Link href="/admin/invoices/new" className="text-gold hover:underline">
@@ -32,57 +45,7 @@ export default async function InvoicesPage() {
           .
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-white/10">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead className="bg-white/5 text-left text-xs uppercase tracking-wider text-muted">
-              <tr>
-                <th className="px-4 py-3">Invoice</th>
-                <th className="px-4 py-3">Customer</th>
-                <th className="px-4 py-3">Type</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3 text-right">Total</th>
-                <th className="px-4 py-3 text-right">Balance</th>
-                <th className="px-4 py-3 text-center">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((inv) => {
-                const paid = inv.payments.reduce((s, p) => s + p.amount, 0);
-                const balance = Math.max(inv.grandTotal - paid, 0);
-                return (
-                  <tr key={inv.id} className="border-t border-white/5 hover:bg-white/5">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/invoices/${inv.id}`}
-                        className="font-medium text-gold hover:underline"
-                      >
-                        {inv.number}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">{inv.billName}</td>
-                    <td className="px-4 py-3 text-muted">
-                      {inv.type === "TAX" ? "Tax" : "Estimate"}
-                    </td>
-                    <td className="px-4 py-3 text-muted">
-                      {inv.date.toLocaleDateString("en-IN")}
-                    </td>
-                    <td className="px-4 py-3 text-right">{formatINR(inv.grandTotal)}</td>
-                    <td className="px-4 py-3 text-right">
-                      {balance > 0 ? (
-                        <span className="text-amber-300">{formatINR(balance)}</span>
-                      ) : (
-                        <span className="text-emerald-300">Paid</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <StatusBadge status={inv.status} />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <InvoiceListClient invoices={rows} />
       )}
     </div>
   );

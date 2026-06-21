@@ -115,6 +115,8 @@ const STATEMENTS: string[] = [
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "GalleryItem_pkey" PRIMARY KEY ("id")
   )`,
+  `ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "discountType" TEXT NOT NULL DEFAULT 'AMOUNT'`,
+  `ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "roundOff" DOUBLE PRECISION NOT NULL DEFAULT 0`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email")`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_number_key" ON "Invoice"("number")`,
   `CREATE INDEX IF NOT EXISTS "Invoice_date_idx" ON "Invoice"("date")`,

@@ -120,6 +120,10 @@ CREATE TABLE IF NOT EXISTS "GalleryItem" (
     CONSTRAINT "GalleryItem_pkey" PRIMARY KEY ("id")
 );
 
+-- Newer invoice columns (safe on existing tables)
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "discountType" TEXT NOT NULL DEFAULT 'AMOUNT';
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "roundOff" DOUBLE PRECISION NOT NULL DEFAULT 0;
+
 -- ---------- Indexes ----------
 CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_number_key" ON "Invoice"("number");
