@@ -93,6 +93,28 @@ const STATEMENTS: string[] = [
     "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "SiteSetting_pkey" PRIMARY KEY ("id")
   )`,
+  `CREATE TABLE IF NOT EXISTS "Service" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "category" TEXT NOT NULL DEFAULT 'Other',
+    "blurb" TEXT NOT NULL,
+    "points" JSONB NOT NULL DEFAULT '[]',
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "Service_pkey" PRIMARY KEY ("id")
+  )`,
+  `CREATE TABLE IF NOT EXISTS "GalleryItem" (
+    "id" TEXT NOT NULL,
+    "imageUrl" TEXT NOT NULL,
+    "caption" TEXT,
+    "category" TEXT,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "GalleryItem_pkey" PRIMARY KEY ("id")
+  )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email")`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_number_key" ON "Invoice"("number")`,
   `CREATE INDEX IF NOT EXISTS "Invoice_date_idx" ON "Invoice"("date")`,

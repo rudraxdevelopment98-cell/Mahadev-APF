@@ -112,3 +112,27 @@ model SiteSetting {
   data      Json
   updatedAt DateTime @updatedAt
 }
+
+/// A service / type of work shown on the website (admin-managed).
+model Service {
+  id        String   @id @default(cuid())
+  title     String
+  category  String   @default("Other")
+  blurb     String
+  points    Json     @default("[]")
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// A work photo shown in the website gallery (admin-managed).
+model GalleryItem {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  caption   String?
+  category  String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}

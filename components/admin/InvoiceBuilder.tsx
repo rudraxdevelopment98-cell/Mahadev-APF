@@ -263,80 +263,129 @@ export default function InvoiceBuilder({
             </select>
           </div>
 
-          <div className="space-y-2">
-            {rows.map((r) => {
+          <div className="space-y-4">
+            {rows.map((r, idx) => {
               const amount = (Number(r.quantity) || 0) * (Number(r.rate) || 0);
               return (
                 <div
                   key={r.key}
-                  className="grid grid-cols-12 gap-2 rounded-lg border border-white/5 p-2"
+                  className="rounded-xl border border-white/10 bg-ink/40 p-3 sm:p-4"
                 >
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted">
+                      Item {idx + 1}
+                    </span>
+                    {rows.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeRow(r.key)}
+                        className="text-xs text-muted hover:text-red-300"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  <label className="mb-1 block text-[11px] uppercase tracking-wide text-muted">
+                    Description
+                  </label>
                   <input
-                    placeholder="Description *"
+                    placeholder="e.g. Aluminium sliding window"
                     value={r.description}
                     onChange={(e) => updateRow(r.key, { description: e.target.value })}
-                    className={inputCls + " col-span-12 md:col-span-4"}
+                    className={inputCls}
                   />
-                  {isTax && (
-                    <input
-                      placeholder="HSN"
-                      value={r.hsn}
-                      onChange={(e) => updateRow(r.key, { hsn: e.target.value })}
-                      className={inputCls + " col-span-4 md:col-span-1"}
-                    />
-                  )}
-                  <select
-                    value={r.unit}
-                    onChange={(e) => updateRow(r.key, { unit: e.target.value })}
-                    className={inputCls + " col-span-4 md:col-span-1"}
-                  >
-                    {units.map((u) => (
-                      <option key={u} value={u}>
-                        {u}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="Qty"
-                    value={r.quantity}
-                    onChange={(e) => updateRow(r.key, { quantity: Number(e.target.value) })}
-                    className={inputCls + " col-span-4 md:col-span-1"}
-                  />
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="Rate"
-                    value={r.rate}
-                    onChange={(e) => updateRow(r.key, { rate: Number(e.target.value) })}
-                    className={inputCls + " col-span-4 md:col-span-2"}
-                  />
-                  {isTax && (
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="GST%"
-                      value={r.taxRate}
-                      onChange={(e) => updateRow(r.key, { taxRate: Number(e.target.value) })}
-                      className={inputCls + " col-span-4 md:col-span-1"}
-                    />
-                  )}
-                  <div
-                    className={`col-span-6 flex items-center justify-end px-2 text-sm ${
-                      isTax ? "md:col-span-1" : "md:col-span-3"
-                    }`}
-                  >
-                    {formatINR(amount)}
+
+                  {/* Fields */}
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                    <div>
+                      <label className="mb-1 block text-[11px] uppercase tracking-wide text-muted">
+                        Unit
+                      </label>
+                      <select
+                        value={r.unit}
+                        onChange={(e) => updateRow(r.key, { unit: e.target.value })}
+                        className={inputCls}
+                      >
+                        {units.map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-[11px] uppercase tracking-wide text-muted">
+                        Quantity
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="0"
+                        value={r.quantity}
+                        onChange={(e) => updateRow(r.key, { quantity: Number(e.target.value) })}
+                        className={inputCls}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-[11px] uppercase tracking-wide text-muted">
+                        Rate (₹)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="0"
+                        value={r.rate}
+                        onChange={(e) => updateRow(r.key, { rate: Number(e.target.value) })}
+                        className={inputCls}
+                      />
+                    </div>
+
+                    {isTax && (
+                      <div>
+                        <label className="mb-1 block text-[11px] uppercase tracking-wide text-muted">
+                          GST %
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          inputMode="decimal"
+                          placeholder="18"
+                          value={r.taxRate}
+                          onChange={(e) => updateRow(r.key, { taxRate: Number(e.target.value) })}
+                          className={inputCls}
+                        />
+                      </div>
+                    )}
+
+                    {isTax && (
+                      <div>
+                        <label className="mb-1 block text-[11px] uppercase tracking-wide text-muted">
+                          HSN / SAC
+                        </label>
+                        <input
+                          placeholder="optional"
+                          value={r.hsn}
+                          onChange={(e) => updateRow(r.key, { hsn: e.target.value })}
+                          className={inputCls}
+                        />
+                      </div>
+                    )}
+
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className="mb-1 block text-[11px] uppercase tracking-wide text-muted">
+                        Amount
+                      </label>
+                      <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium">
+                        {formatINR(amount)}
+                      </div>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeRow(r.key)}
-                    className="col-span-2 text-muted hover:text-red-300 md:col-span-1"
-                    aria-label="Remove row"
-                  >
-                    ✕
-                  </button>
                 </div>
               );
             })}

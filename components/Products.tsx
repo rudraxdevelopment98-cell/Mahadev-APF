@@ -1,8 +1,10 @@
 import Link from "next/link";
-import ProductCatalog from "./ProductCatalog";
+import ServiceGrid from "./ServiceGrid";
 import Reveal from "./Reveal";
+import { getServices } from "@/lib/services-server";
 
-export default function Products() {
+export default async function Products() {
+  const services = await getServices();
   return (
     <section id="products" className="container-px py-28 md:py-36">
       <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
@@ -31,7 +33,7 @@ export default function Products() {
       </div>
 
       <div className="mt-14">
-        <ProductCatalog />
+        <ServiceGrid services={services} />
       </div>
     </section>
   );

@@ -6,11 +6,13 @@ import Products from "@/components/Products";
 import Industries from "@/components/Industries";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import Testimonials from "@/components/Testimonials";
+import Gallery from "@/components/Gallery";
 import Contact from "@/components/Contact";
 import { getSettings } from "@/lib/settings-server";
+import { getGallery } from "@/lib/gallery-server";
 
 export default async function Home() {
-  const site = await getSettings();
+  const [site, gallery] = await Promise.all([getSettings(), getGallery()]);
   return (
     <>
       <Preloader />
@@ -21,6 +23,7 @@ export default async function Home() {
         <Products />
         <Industries />
         <WhyChooseUs />
+        <Gallery items={gallery} />
         <Testimonials />
         <Contact site={site} />
       </main>

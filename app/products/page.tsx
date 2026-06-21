@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
-import ProductCatalog from "@/components/ProductCatalog";
+import ServiceGrid from "@/components/ServiceGrid";
+import { getServices } from "@/lib/services-server";
 
 export const metadata: Metadata = {
   title: "Our Work",
@@ -8,7 +9,8 @@ export const metadata: Metadata = {
     "Explore Mahadev APF's work — aluminium & uPVC windows and doors, modular kitchens, wardrobes, glass works and office interiors.",
 };
 
-export default function ProductsPage() {
+export default async function ProductsPage() {
+  const services = await getServices();
   return (
     <main>
       <PageHeader
@@ -18,7 +20,7 @@ export default function ProductsPage() {
         crumbs={[{ label: "Our Work" }]}
       />
       <section className="container-px pb-28 md:pb-36">
-        <ProductCatalog />
+        <ServiceGrid services={services} />
       </section>
     </main>
   );
