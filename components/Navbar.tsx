@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { nav } from "@/lib/data";
 import type { SiteSettings } from "@/lib/settings";
 
@@ -17,17 +16,12 @@ export default function Navbar({ site }: { site: SiteSettings }) {
   }, []);
 
   return (
-    <motion.header
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
-      className="fixed inset-x-0 top-0 z-50"
-    >
+    <header className="fixed inset-x-0 top-0 z-50 animate-[fadeIn_0.6s_ease-out]">
       <nav
-        className={`container-px flex items-center justify-between transition-all duration-500 ${
+        className={`container-px flex items-center justify-between backdrop-blur-xl backdrop-saturate-150 transition-all duration-500 ${
           scrolled
-            ? "glass mx-3 mt-3 rounded-2xl py-3 md:mx-6"
-            : "bg-transparent py-5"
+            ? "mx-3 mt-3 rounded-2xl border border-white/10 bg-ink/65 py-3 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.8)] md:mx-6"
+            : "border-b border-white/10 bg-ink/30 py-5"
         }`}
       >
         <Link href="/" className="flex items-center gap-3" aria-label={site.name}>
@@ -65,6 +59,6 @@ export default function Navbar({ site }: { site: SiteSettings }) {
           Get Quote
         </Link>
       </nav>
-    </motion.header>
+    </header>
   );
 }

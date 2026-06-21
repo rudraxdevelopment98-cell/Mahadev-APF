@@ -135,6 +135,15 @@ body {
   mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 50%, transparent 100%);
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes float-slow {
   0%,
   100% {
