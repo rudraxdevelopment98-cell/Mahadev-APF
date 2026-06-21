@@ -149,6 +149,18 @@ CREATE TABLE IF NOT EXISTS "Lead" (
     CONSTRAINT "Lead_pkey" PRIMARY KEY ("id")
 );
 
+CREATE TABLE IF NOT EXISTS "Space" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "body" TEXT NOT NULL,
+    "imageUrl" TEXT,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "Space_pkey" PRIMARY KEY ("id")
+);
+
 -- ---------- Indexes ----------
 CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_number_key" ON "Invoice"("number");

@@ -14,18 +14,25 @@ export async function saveSettings(formData: FormData) {
 
   const get = (k: string) => String(formData.get(k) ?? "").trim();
 
-  // Logo: upload a new file to Blob if provided, else keep the existing URL.
-  let logoUrl = get("logoUrl");
-  const logo = formData.get("logo");
-  if (logo instanceof File && logo.size > 0) {
-    try {
-      const safe = logo.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const blob = await put(`logo/${Date.now()}-${safe}`, logo, { access: "public" });
-      logoUrl = blob.url;
-    } catch {
-      // keep existing logo on failure
+  // Upload an optional image field to Blob; keep the current URL if none/failed.
+  async function uploadImage(field: string, prefix: string, current: string) {
+    const f = formData.get(field);
+    if (f instanceof File && f.size > 0) {
+      try {
+        const safe = f.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const blob = await put(`${prefix}/${Date.now()}-${safe}`, f, {
+          access: "public",
+        });
+        return blob.url;
+      } catch {
+        return current;
+      }
     }
+    return current;
   }
+
+  const logoUrl = await uploadImage("logo", "logo", get("logoUrl"));
+  const aboutImageUrl = await uploadImage("aboutImage", "about", get("aboutImageUrl"));
 
   const num = (k: string) => Number(formData.get(k)) || 0;
   const stats = [0, 1, 2, 3].map((i) => ({
@@ -63,6 +70,7 @@ export async function saveSettings(formData: FormData) {
     stats,
     logoUrl,
     googleReviewUrl: get("googleReviewUrl"),
+    aboutImageUrl,
   };
 
   const json = data as unknown as Prisma.InputJsonObject;

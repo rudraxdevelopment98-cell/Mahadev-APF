@@ -17,10 +17,24 @@ export default function About({ site }: { site: SiteSettings }) {
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
             className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-white/10"
           >
-            {/* Stylised facility visual (pure CSS, no asset required) */}
-            <div className="absolute inset-0 bg-gradient-to-br from-panel via-ink-soft to-ink" />
-            <div className="absolute inset-0 grid-lines opacity-70" />
-            <div className="gold-streak" />
+            {site.aboutImageUrl ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={site.aboutImageUrl}
+                  alt="About our work"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-transparent" />
+              </>
+            ) : (
+              <>
+                {/* Stylised fallback visual (pure CSS, no asset required) */}
+                <div className="absolute inset-0 bg-gradient-to-br from-panel via-ink-soft to-ink" />
+                <div className="absolute inset-0 grid-lines opacity-70" />
+                <div className="gold-streak" />
+              </>
+            )}
             <div className="absolute inset-0 flex items-end p-8">
               <div className="glass rounded-2xl p-5">
                 <p className="font-heading text-3xl font-bold text-gold">15+</p>

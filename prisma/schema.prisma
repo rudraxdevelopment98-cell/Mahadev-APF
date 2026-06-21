@@ -152,6 +152,18 @@ model Review {
   updatedAt DateTime @updatedAt
 }
 
+/// A "space we work in" card shown on the website (admin-managed, with image).
+model Space {
+  id        String   @id @default(cuid())
+  name      String
+  body      String
+  imageUrl  String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 /// An enquiry submitted through the website contact form.
 model Lead {
   id        String   @id @default(cuid())

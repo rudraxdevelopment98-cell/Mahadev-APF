@@ -1,7 +1,61 @@
+"use client";
+
+import { useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import type { GalleryImage } from "@/lib/gallery-server";
 import Reveal from "./Reveal";
 
-/** Photo grid of the shop's real work. */
+function TiltPhoto({ item }: { item: GalleryImage }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const mx = useMotionValue(0.5);
+  const my = useMotionValue(0.5);
+  const rx = useSpring(useTransform(my, [0, 1], [7, -7]), { stiffness: 180, damping: 18 });
+  const ry = useSpring(useTransform(mx, [0, 1], [-7, 7]), { stiffness: 180, damping: 18 });
+
+  function onMove(e: React.MouseEvent) {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    mx.set((e.clientX - r.left) / r.width);
+    my.set((e.clientY - r.top) / r.height);
+  }
+  function reset() {
+    mx.set(0.5);
+    my.set(0.5);
+  }
+
+  return (
+    <motion.figure
+      ref={ref}
+      onMouseMove={onMove}
+      onMouseLeave={reset}
+      style={{ rotateX: rx, rotateY: ry, transformPerspective: 900 }}
+      className="group relative mb-4 break-inside-avoid overflow-hidden rounded-2xl border border-white/10 shadow-lg [transform-style:preserve-3d]"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={item.imageUrl}
+        alt={item.caption ?? "Our work"}
+        loading="lazy"
+        className="w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+      />
+      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+        <div className="absolute inset-0 bg-gradient-to-t from-gold/10 via-transparent to-transparent" />
+      </div>
+      {(item.caption || item.category) && (
+        <figcaption className="absolute inset-x-0 bottom-0 translate-y-1 bg-gradient-to-t from-ink/90 to-transparent p-4 opacity-90 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          {item.category && (
+            <span className="text-[10px] uppercase tracking-[0.2em] text-gold">
+              {item.category}
+            </span>
+          )}
+          {item.caption && <p className="text-sm text-paper">{item.caption}</p>}
+        </figcaption>
+      )}
+    </motion.figure>
+  );
+}
+
 export default function Gallery({
   items,
   heading = true,
@@ -28,31 +82,9 @@ export default function Gallery({
         </div>
       )}
 
-      <div className="columns-2 gap-4 md:columns-3 [&>*]:mb-4">
-        {items.map((it, i) => (
-          <Reveal key={it.id} index={i % 3}>
-            <figure className="group relative overflow-hidden rounded-2xl border border-white/10 break-inside-avoid">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={it.imageUrl}
-                alt={it.caption ?? "Our work"}
-                loading="lazy"
-                className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              {(it.caption || it.category) && (
-                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 to-transparent p-4">
-                  {it.category && (
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-gold">
-                      {it.category}
-                    </span>
-                  )}
-                  {it.caption && (
-                    <p className="text-sm text-paper">{it.caption}</p>
-                  )}
-                </figcaption>
-              )}
-            </figure>
-          </Reveal>
+      <div className="columns-2 gap-4 md:columns-3">
+        {items.map((it) => (
+          <TiltPhoto key={it.id} item={it} />
         ))}
       </div>
     </section>

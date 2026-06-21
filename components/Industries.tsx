@@ -1,10 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { industries } from "@/lib/data";
+import type { SpaceItem } from "@/lib/spaces";
 import Reveal from "./Reveal";
 
-export default function Industries() {
+export default function Industries({ spaces }: { spaces: SpaceItem[] }) {
   return (
     <section id="industries" className="relative overflow-hidden py-28 md:py-36">
       {/* Animated background layer */}
@@ -18,7 +18,7 @@ export default function Industries() {
         <div className="mx-auto max-w-2xl text-center">
           <Reveal>
             <span className="text-xs uppercase tracking-[0.3em] text-gold">
-              Industries We Serve
+              Where We Work
             </span>
           </Reveal>
           <Reveal index={1}>
@@ -28,23 +28,41 @@ export default function Industries() {
           </Reveal>
         </div>
 
-        <div className="mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/5 md:grid-cols-4">
-          {industries.map((industry, i) => (
+        <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-4">
+          {spaces.map((sp, i) => (
             <motion.div
-              key={industry.name}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              key={sp.id ?? sp.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: (i % 4) * 0.08, duration: 0.5 }}
-              className="group relative flex aspect-[4/3] flex-col items-center justify-center gap-3 bg-ink p-6 text-center transition-colors hover:bg-panel"
+              className="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-2xl border border-white/10 bg-ink p-5"
             >
-              <span className="font-heading text-3xl font-bold text-white/10 transition-colors group-hover:text-gold/30">
-                0{i + 1}
-              </span>
-              <span className="text-sm font-medium tracking-wide transition-colors group-hover:text-gold">
-                {industry.name}
-              </span>
-              <span className="absolute bottom-0 left-0 h-px w-0 bg-gold transition-all duration-500 group-hover:w-full" />
+              {sp.imageUrl ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={sp.imageUrl}
+                    alt={sp.name}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+                </>
+              ) : (
+                <>
+                  <div className="absolute inset-0 grid-lines opacity-40" />
+                  <span className="absolute right-4 top-3 font-heading text-3xl font-bold text-white/10 transition-colors group-hover:text-gold/30">
+                    0{i + 1}
+                  </span>
+                </>
+              )}
+              <div className="relative">
+                <h3 className="font-heading text-base font-bold leading-tight transition-colors group-hover:text-gold">
+                  {sp.name}
+                </h3>
+                <p className="mt-1 line-clamp-2 text-xs text-muted">{sp.body}</p>
+              </div>
             </motion.div>
           ))}
         </div>

@@ -98,6 +98,26 @@ export default async function SettingsPage({
               Adds a &ldquo;Review us on Google&rdquo; button on the website.
             </p>
           </div>
+          <div>
+            <label className={label}>&ldquo;Who we are&rdquo; photo (homepage about section)</label>
+            {s.aboutImageUrl && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={s.aboutImageUrl}
+                alt="About"
+                className="mb-2 h-24 w-auto rounded-lg object-cover"
+              />
+            )}
+            <input
+              name="aboutImage"
+              type="file"
+              accept="image/*"
+              className="w-full text-sm text-muted file:mr-3 file:rounded-full file:border-0 file:bg-gold file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink"
+            />
+            <p className="mt-1 text-xs text-muted">
+              A photo of your shop/work shown in the About section. Optional.
+            </p>
+          </div>
         </section>
 
         {/* Contact */}

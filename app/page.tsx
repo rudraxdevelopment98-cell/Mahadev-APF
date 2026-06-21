@@ -11,12 +11,14 @@ import Contact from "@/components/Contact";
 import { getSettings } from "@/lib/settings-server";
 import { getGallery } from "@/lib/gallery-server";
 import { getReviews } from "@/lib/reviews-server";
+import { getSpaces } from "@/lib/spaces-server";
 
 export default async function Home() {
-  const [site, gallery, reviews] = await Promise.all([
+  const [site, gallery, reviews, spaces] = await Promise.all([
     getSettings(),
     getGallery(),
     getReviews(),
+    getSpaces(),
   ]);
   return (
     <>
@@ -26,7 +28,7 @@ export default async function Home() {
         <About site={site} />
         <Stats stats={site.stats} />
         <Products />
-        <Industries />
+        <Industries spaces={spaces} />
         <WhyChooseUs />
         <Gallery items={gallery} />
         <Testimonials reviews={reviews} googleUrl={site.googleReviewUrl} />

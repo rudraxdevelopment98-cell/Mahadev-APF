@@ -44,6 +44,8 @@ export type SiteSettings = {
   // Branding & reviews
   logoUrl: string;
   googleReviewUrl: string;
+  // Section images
+  aboutImageUrl: string;
 };
 
 export const defaultSettings: SiteSettings = {
@@ -77,6 +79,7 @@ export const defaultSettings: SiteSettings = {
   stats: defaultStats,
   logoUrl: "",
   googleReviewUrl: "",
+  aboutImageUrl: "",
 };
 
 /** Merge a partial (from the database) over the defaults. */
