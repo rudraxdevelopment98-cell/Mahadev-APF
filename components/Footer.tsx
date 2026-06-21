@@ -81,8 +81,9 @@ export default function Footer({ site }: { site: SiteSettings }) {
           </div>
         </div>
 
-        <p className="mt-8 text-center text-[11px] text-muted/70">
-          Managed &amp; developed by Kuldeep J · RD-IT-Services · 2026
+        <p className="mt-8 text-center text-xs text-muted">
+          Website managed &amp; developed by{" "}
+          <span className="text-gold">Kuldeep J @ RD-IT-Services</span> · 2026
         </p>
       </div>
     </footer>
