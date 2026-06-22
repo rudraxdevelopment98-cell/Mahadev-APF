@@ -24,11 +24,42 @@ async function nextInvoiceNumber(date: Date, prefix: string): Promise<string> {
   const fy = financialYear(date);
   const start = new Date(date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1, 3, 1);
   const end = new Date(start.getFullYear() + 1, 3, 1);
-  const countInFy = await prisma.invoice.count({
+  // Use the highest sequence already issued this financial year (not a count),
+  // so deleting an invoice can never reissue an existing number.
+  const existing = await prisma.invoice.findMany({
     where: { date: { gte: start, lt: end } },
+    select: { number: true },
   });
-  const seq = String(countInFy + 1).padStart(3, "0");
+  let max = 0;
+  for (const { number } of existing) {
+    const m = number.match(/(\d+)\s*$/);
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  }
+  const seq = String(max + 1).padStart(3, "0");
   return `${prefix}/${fy}/${seq}`;
+}
+
+/**
+ * Create an invoice, regenerating the number if the unique constraint on
+ * `number` trips (e.g. two invoices created at the same moment). On each
+ * retry nextInvoiceNumber re-reads the current maximum, so it climbs past
+ * whatever was just taken.
+ */
+async function createInvoiceWithNumber(
+  date: Date,
+  prefix: string,
+  build: (number: string) => Parameters<typeof prisma.invoice.create>[0]["data"],
+) {
+  for (let attempt = 0; ; attempt++) {
+    const number = await nextInvoiceNumber(date, prefix);
+    try {
+      return await prisma.invoice.create({ data: build(number) });
+    } catch (e) {
+      const code = (e as { code?: string })?.code;
+      if (code === "P2002" && attempt < 5) continue;
+      throw e;
+    }
+  }
 }
 
 export async function createInvoice(input: CreateInvoiceInput) {
@@ -59,31 +90,28 @@ export async function createInvoice(input: CreateInvoiceInput) {
 
   const date = input.date ? new Date(input.date) : new Date();
   const settings = await getSettings();
-  const number = await nextInvoiceNumber(date, settings.invoicePrefix);
 
-  const invoice = await prisma.invoice.create({
-    data: {
-      number,
-      type: input.type,
-      date,
-      status: "ISSUED",
-      customerId: input.customerId || null,
-      billName: input.billName.trim(),
-      billPhone: input.billPhone?.trim() || null,
-      billGstin: input.billGstin?.trim() || null,
-      billAddress: input.billAddress?.trim() || null,
-      interState: input.interState,
-      showBank: input.showBank !== false,
-      notes: input.notes?.trim() || null,
-      discount: Number(input.discount) || 0,
-      discountType: input.discountType === "PERCENT" ? "PERCENT" : "AMOUNT",
-      subTotal: totals.subTotal,
-      taxTotal: totals.taxTotal,
-      roundOff: totals.roundOff,
-      grandTotal: totals.grandTotal,
-      items: { create: itemRows(items, isTax) },
-    },
-  });
+  const invoice = await createInvoiceWithNumber(date, settings.invoicePrefix, (number) => ({
+    number,
+    type: input.type,
+    date,
+    status: "ISSUED",
+    customerId: input.customerId || null,
+    billName: input.billName.trim(),
+    billPhone: input.billPhone?.trim() || null,
+    billGstin: input.billGstin?.trim() || null,
+    billAddress: input.billAddress?.trim() || null,
+    interState: input.interState,
+    showBank: input.showBank !== false,
+    notes: input.notes?.trim() || null,
+    discount: Number(input.discount) || 0,
+    discountType: input.discountType === "PERCENT" ? "PERCENT" : "AMOUNT",
+    subTotal: totals.subTotal,
+    taxTotal: totals.taxTotal,
+    roundOff: totals.roundOff,
+    grandTotal: totals.grandTotal,
+    items: { create: itemRows(items, isTax) },
+  }));
 
   revalidatePath("/admin/invoices");
   revalidatePath("/admin");
@@ -171,41 +199,38 @@ export async function duplicateInvoice(id: string) {
 
   const date = new Date();
   const settings = await getSettings();
-  const number = await nextInvoiceNumber(date, settings.invoicePrefix);
 
-  const created = await prisma.invoice.create({
-    data: {
-      number,
-      type: src.type,
-      date,
-      status: "ISSUED",
-      customerId: src.customerId,
-      billName: src.billName,
-      billPhone: src.billPhone,
-      billGstin: src.billGstin,
-      billAddress: src.billAddress,
-      interState: src.interState,
-      showBank: src.showBank,
-      notes: src.notes,
-      discount: src.discount,
-      discountType: src.discountType,
-      subTotal: src.subTotal,
-      taxTotal: src.taxTotal,
-      roundOff: src.roundOff,
-      grandTotal: src.grandTotal,
-      items: {
-        create: src.items.map((i) => ({
-          description: i.description,
-          hsn: i.hsn,
-          unit: i.unit,
-          quantity: i.quantity,
-          rate: i.rate,
-          taxRate: i.taxRate,
-          amount: i.amount,
-        })),
-      },
+  const created = await createInvoiceWithNumber(date, settings.invoicePrefix, (number) => ({
+    number,
+    type: src.type,
+    date,
+    status: "ISSUED",
+    customerId: src.customerId,
+    billName: src.billName,
+    billPhone: src.billPhone,
+    billGstin: src.billGstin,
+    billAddress: src.billAddress,
+    interState: src.interState,
+    showBank: src.showBank,
+    notes: src.notes,
+    discount: src.discount,
+    discountType: src.discountType,
+    subTotal: src.subTotal,
+    taxTotal: src.taxTotal,
+    roundOff: src.roundOff,
+    grandTotal: src.grandTotal,
+    items: {
+      create: src.items.map((i) => ({
+        description: i.description,
+        hsn: i.hsn,
+        unit: i.unit,
+        quantity: i.quantity,
+        rate: i.rate,
+        taxRate: i.taxRate,
+        amount: i.amount,
+      })),
     },
-  });
+  }));
 
   revalidatePath("/admin/invoices");
   redirect(`/admin/invoices/${created.id}`);
@@ -268,41 +293,38 @@ export async function convertEstimateToInvoice(estimateId: string) {
 
   const date = new Date();
   const settings = await getSettings();
-  const number = await nextInvoiceNumber(date, settings.invoicePrefix);
 
-  const created = await prisma.invoice.create({
-    data: {
-      number,
-      type: "TAX",
-      date,
-      status: "ISSUED",
-      customerId: src.customerId,
-      billName: src.billName,
-      billPhone: src.billPhone,
-      billGstin: src.billGstin,
-      billAddress: src.billAddress,
-      interState: src.interState,
-      showBank: src.showBank,
-      notes: src.notes,
-      discount: src.discount,
-      discountType: src.discountType,
-      subTotal: src.subTotal,
-      taxTotal: src.taxTotal,
-      roundOff: src.roundOff,
-      grandTotal: src.grandTotal,
-      items: {
-        create: src.items.map((i) => ({
-          description: i.description,
-          hsn: i.hsn,
-          unit: i.unit,
-          quantity: i.quantity,
-          rate: i.rate,
-          taxRate: i.taxRate,
-          amount: i.amount,
-        })),
-      },
+  const created = await createInvoiceWithNumber(date, settings.invoicePrefix, (number) => ({
+    number,
+    type: "TAX",
+    date,
+    status: "ISSUED",
+    customerId: src.customerId,
+    billName: src.billName,
+    billPhone: src.billPhone,
+    billGstin: src.billGstin,
+    billAddress: src.billAddress,
+    interState: src.interState,
+    showBank: src.showBank,
+    notes: src.notes,
+    discount: src.discount,
+    discountType: src.discountType,
+    subTotal: src.subTotal,
+    taxTotal: src.taxTotal,
+    roundOff: src.roundOff,
+    grandTotal: src.grandTotal,
+    items: {
+      create: src.items.map((i) => ({
+        description: i.description,
+        hsn: i.hsn,
+        unit: i.unit,
+        quantity: i.quantity,
+        rate: i.rate,
+        taxRate: i.taxRate,
+        amount: i.amount,
+      })),
     },
-  });
+  }));
 
   revalidatePath("/admin/invoices");
   redirect(`/admin/invoices/${created.id}/edit`);
