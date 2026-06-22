@@ -1,8 +1,17 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { createCustomer, deleteCustomer } from "@/lib/actions/customer-actions";
+import HelpHint from "@/components/admin/HelpHint";
 
 export const dynamic = "force-dynamic";
+
+const customerSteps = [
+  "Type the customer's name (required) and phone number.",
+  "Add email, GSTIN and address if you have them — GSTIN is needed for GST tax invoices.",
+  "Tap 'Add Customer' — they're saved to your list.",
+  "When making an invoice, pick this customer from the 'Select saved customer' dropdown to auto-fill their details.",
+  "Use 'Edit' to update a customer, or 'Delete' to remove them (their past invoices are kept).",
+];
 
 const inputCls =
   "w-full rounded-lg border border-white/10 bg-ink/60 px-3 py-2 text-sm outline-none focus:border-gold";
@@ -15,7 +24,10 @@ export default async function CustomersPage() {
 
   return (
     <div>
-      <h1 className="mb-6 font-heading text-3xl font-bold">Customers</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-heading text-3xl font-bold">Customers</h1>
+        <HelpHint title="How to add a customer" steps={customerSteps} />
+      </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_2fr]">
         {/* Add form */}

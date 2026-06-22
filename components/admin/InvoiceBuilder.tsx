@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { createInvoice, updateInvoice } from "@/lib/actions/invoice-actions";
 import type { CreateInvoiceInput } from "@/lib/invoice-types";
 import { computeTotals, formatINR } from "@/lib/money";
@@ -58,6 +58,8 @@ type Row = {
 const inputCls =
   "w-full rounded-lg border border-white/10 bg-ink/60 px-3 py-2 text-sm outline-none focus:border-gold";
 
+const DRAFT_KEY = "mapf_invoice_draft_v1";
+
 let rowSeq = 1;
 const emptyRow = (): Row => ({
   key: rowSeq++,
@@ -107,6 +109,105 @@ export default function InvoiceBuilder({
   const [pending, startTransition] = useTransition();
 
   const isTax = type === "TAX";
+
+  // ---- Auto-save draft (create mode only) so leaving the tab doesn't lose work ----
+  const draftEnabled = mode === "create";
+  const skipSave = useRef(true);
+  const [hasDraft, setHasDraft] = useState(false);
+
+  useEffect(() => {
+    if (!draftEnabled) return;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (d && typeof d === "object") {
+          if (d.type) setType(d.type);
+          setInterState(!!d.interState);
+          setCustomerId(d.customerId ?? "");
+          setBillName(d.billName ?? "");
+          setBillPhone(d.billPhone ?? "");
+          setBillGstin(d.billGstin ?? "");
+          setBillAddress(d.billAddress ?? "");
+          if (d.date) setDate(d.date);
+          setDiscount(Number(d.discount) || 0);
+          if (d.discountType) setDiscountType(d.discountType);
+          setRoundOff(d.roundOff !== false);
+          setNotes(d.notes ?? "");
+          if (Array.isArray(d.rows) && d.rows.length) {
+            setRows(
+              d.rows.map((r: Partial<Row>) => ({
+                key: rowSeq++,
+                description: r.description ?? "",
+                hsn: r.hsn ?? "",
+                unit: r.unit ?? "nos",
+                quantity: Number(r.quantity) || 0,
+                rate: Number(r.rate) || 0,
+                taxRate: Number(r.taxRate) || 18,
+              })),
+            );
+          }
+          if (d.billName || (Array.isArray(d.rows) && d.rows.some((r: Partial<Row>) => r.description)))
+            setHasDraft(true);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!draftEnabled) return;
+    if (skipSave.current) {
+      skipSave.current = false;
+      return;
+    }
+    try {
+      localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({
+          type, interState, customerId, billName, billPhone, billGstin,
+          billAddress, date, discount, discountType, roundOff, notes,
+          rows: rows.map(({ description, hsn, unit, quantity, rate, taxRate }) => ({
+            description, hsn, unit, quantity, rate, taxRate,
+          })),
+        }),
+      );
+      setHasDraft(true);
+    } catch {
+      /* ignore */
+    }
+  }, [
+    draftEnabled, type, interState, customerId, billName, billPhone, billGstin,
+    billAddress, date, discount, discountType, roundOff, notes, rows,
+  ]);
+
+  function clearDraft() {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* ignore */
+    }
+    setHasDraft(false);
+  }
+
+  function startFresh() {
+    clearDraft();
+    setType("TAX");
+    setInterState(false);
+    setCustomerId("");
+    setBillName("");
+    setBillPhone("");
+    setBillGstin("");
+    setBillAddress("");
+    setDate(new Date().toISOString().slice(0, 10));
+    setDiscount(0);
+    setDiscountType("AMOUNT");
+    setRoundOff(true);
+    setNotes("");
+    setRows([emptyRow()]);
+  }
 
   const totals = useMemo(
     () =>
@@ -198,6 +299,7 @@ export default function InvoiceBuilder({
         if (mode === "edit" && invoiceId) {
           await updateInvoice(invoiceId, payload);
         } else {
+          clearDraft();
           await createInvoice(payload);
         }
       } catch (e) {
@@ -212,6 +314,19 @@ export default function InvoiceBuilder({
     <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
       {/* Left: form */}
       <div className="space-y-6">
+        {draftEnabled && hasDraft && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-2.5 text-sm text-emerald-300">
+            <span>✓ Draft saved automatically — you can leave and come back.</span>
+            <button
+              type="button"
+              onClick={startFresh}
+              className="rounded-full border border-emerald-400/40 px-3 py-1 text-xs hover:bg-emerald-400/10"
+            >
+              Start fresh
+            </button>
+          </div>
+        )}
+
         {/* Type + meta */}
         <div className="rounded-2xl border border-white/10 bg-ink-soft/40 p-5">
           <div className="mb-4 flex flex-wrap items-center gap-2">
