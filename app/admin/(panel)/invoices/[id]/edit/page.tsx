@@ -26,7 +26,8 @@ export default async function EditInvoicePage({
   if (!inv) notFound();
 
   const initial: InitialInvoice = {
-    type: inv.type === "ESTIMATE" ? "ESTIMATE" : "TAX",
+    type:
+      inv.type === "ESTIMATE" ? "ESTIMATE" : inv.type === "NOGST" ? "NOGST" : "TAX",
     interState: inv.interState,
     showBank: inv.showBank,
     customerId: inv.customerId ?? "",

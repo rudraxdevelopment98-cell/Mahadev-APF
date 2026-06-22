@@ -13,6 +13,7 @@ import {
   convertEstimateToInvoice,
 } from "@/lib/actions/invoice-actions";
 import { shop } from "@/lib/shop";
+import { invoiceTypeLabel } from "@/lib/invoice-types";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,7 @@ export default async function InvoiceDetailPage({
   const publicUrl = host ? `${proto}://${host}/invoice/${inv.id}` : "";
 
   const waText =
-    `${shop.name}\n${isEstimate ? "Estimate" : "Tax Invoice"}: ${inv.number}\n` +
+    `${shop.name}\n${invoiceTypeLabel(inv.type)}: ${inv.number}\n` +
     `Date: ${inv.date.toLocaleDateString("en-IN")}\n` +
     `Total: ${formatINR(inv.grandTotal)}` +
     (!isEstimate && balance > 0 ? `\nBalance due: ${formatINR(balance)}` : "") +
@@ -71,8 +72,12 @@ export default async function InvoiceDetailPage({
             <StatusBadge status={inv.status} />
           </h1>
           <p className="mt-1 text-sm text-muted">
-            {inv.type === "TAX" ? "GST Tax Invoice" : "Estimate"} ·{" "}
-            {inv.date.toLocaleDateString("en-IN")}
+            {inv.type === "TAX"
+              ? "GST Tax Invoice"
+              : inv.type === "NOGST"
+                ? "Invoice (No GST)"
+                : "Estimate"}{" "}
+            · {inv.date.toLocaleDateString("en-IN")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -31,7 +31,9 @@ export default function InvoiceListClient({ invoices }: { invoices: InvoiceRow[]
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return invoices.filter((i) => {
-      if (kind !== "ALL" && i.type !== kind) return false;
+      // "Invoices" = anything that isn't an estimate (GST or No-GST).
+      if (kind === "TAX" && i.type === "ESTIMATE") return false;
+      if (kind === "ESTIMATE" && i.type !== "ESTIMATE") return false;
       if (status !== "ALL" && i.status !== status) return false;
       if (!needle) return true;
       return (
@@ -113,7 +115,11 @@ export default function InvoiceListClient({ invoices }: { invoices: InvoiceRow[]
                   </td>
                   <td className="px-4 py-3">{inv.billName}</td>
                   <td className="px-4 py-3 text-muted">
-                    {inv.type === "TAX" ? "Tax" : "Estimate"}
+                    {inv.type === "TAX"
+                      ? "Tax"
+                      : inv.type === "NOGST"
+                        ? "No GST"
+                        : "Estimate"}
                   </td>
                   <td className="px-4 py-3 text-muted">{inv.dateLabel}</td>
                   <td className="px-4 py-3 text-right">{formatINR(inv.grandTotal)}</td>

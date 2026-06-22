@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { getSettings } from "@/lib/settings-server";
 import { InvoiceSheet } from "@/components/InvoiceSheet";
+import { invoiceTypeLabel } from "@/lib/invoice-types";
 import PrintButton from "@/components/admin/PrintButton";
 
 export const dynamic = "force-dynamic";
@@ -15,8 +16,10 @@ export async function generateMetadata({
   const { id } = await params;
   const inv = await prisma.invoice.findUnique({ where: { id } });
   if (!inv) return { title: "Invoice not found" };
-  const label = inv.type === "TAX" ? "Tax Invoice" : "Estimate";
-  return { title: `${label} ${inv.number}`, robots: { index: false } };
+  return {
+    title: `${invoiceTypeLabel(inv.type)} ${inv.number}`,
+    robots: { index: false },
+  };
 }
 
 /**

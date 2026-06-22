@@ -1,4 +1,5 @@
 import { formatINR, amountInWords } from "@/lib/money";
+import { invoiceTypeLabel } from "@/lib/invoice-types";
 import type { Invoice, InvoiceItem, Payment } from "@prisma/client";
 import type { SiteSettings } from "@/lib/settings";
 
@@ -33,7 +34,7 @@ export function InvoiceSheet({ inv, shop }: Props) {
         </div>
         <div className="text-right">
           <p className="text-lg font-bold uppercase">
-            {isTax ? "Tax Invoice" : "Estimate"}
+            {invoiceTypeLabel(inv.type)}
           </p>
           <p className="mt-1 text-xs">
             <span className="text-gray-500">No: </span>

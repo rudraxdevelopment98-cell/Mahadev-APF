@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { createInvoice, updateInvoice } from "@/lib/actions/invoice-actions";
-import type { CreateInvoiceInput } from "@/lib/invoice-types";
+import type { CreateInvoiceInput, InvoiceType } from "@/lib/invoice-types";
 import { computeTotals, formatINR } from "@/lib/money";
 import { units } from "@/lib/shop";
 
 export type InitialInvoice = {
-  type: "TAX" | "ESTIMATE";
+  type: InvoiceType;
   interState: boolean;
   showBank: boolean;
   customerId: string;
@@ -106,7 +106,7 @@ export default function InvoiceBuilder({
   invoiceId?: string;
   initial?: InitialInvoice;
 }) {
-  const [type, setType] = useState<"TAX" | "ESTIMATE">(initial?.type ?? "TAX");
+  const [type, setType] = useState<InvoiceType>(initial?.type ?? "TAX");
   const [interState, setInterState] = useState(initial?.interState ?? false);
   const [showBank, setShowBank] = useState(initial?.showBank ?? true);
   const [customerId, setCustomerId] = useState(initial?.customerId ?? "");
@@ -403,7 +403,13 @@ export default function InvoiceBuilder({
         {/* Type + meta */}
         <div className="rounded-2xl border border-white/10 bg-ink-soft/40 p-5">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            {(["TAX", "ESTIMATE"] as const).map((t) => (
+            {(
+              [
+                ["TAX", "GST Tax Invoice"],
+                ["NOGST", "Invoice (No GST)"],
+                ["ESTIMATE", "Estimate / Quotation"],
+              ] as const
+            ).map(([t, label]) => (
               <button
                 key={t}
                 type="button"
@@ -414,7 +420,7 @@ export default function InvoiceBuilder({
                     : "border border-white/15 text-muted hover:text-paper"
                 }`}
               >
-                {t === "TAX" ? "GST Tax Invoice" : "Estimate / Quotation"}
+                {label}
               </button>
             ))}
             <div className="ml-auto flex items-center gap-2">
@@ -431,9 +437,11 @@ export default function InvoiceBuilder({
           <div className="space-y-2">
             <p className="text-xs text-muted">
               {isTax
-                ? "GST is shown on this bill (Tax Invoice)."
-                : "GST is hidden on this bill (Estimate)."}{" "}
-              Switch the buttons above to show or hide GST.
+                ? "GST is applied and shown on this bill (Tax Invoice)."
+                : type === "NOGST"
+                  ? "A plain invoice with no GST applied."
+                  : "An estimate / quotation — no GST, not a tax bill."}{" "}
+              Switch the buttons above to change this.
             </p>
             {isTax && (
               <label className="flex items-center gap-2 text-sm text-muted">

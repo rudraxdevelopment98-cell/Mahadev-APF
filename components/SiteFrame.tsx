@@ -21,9 +21,12 @@ export default function SiteFrame({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith("/admin");
+  // The admin area and the public invoice/estimate document have their own
+  // standalone layout — no marketing nav, footer or floating buttons.
+  const bare =
+    pathname?.startsWith("/admin") || pathname?.startsWith("/invoice");
 
-  if (isAdmin) return <>{children}</>;
+  if (bare) return <>{children}</>;
 
   return (
     <>
