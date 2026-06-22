@@ -17,14 +17,21 @@ export type InvoiceRow = {
 };
 
 const statuses = ["ALL", "ISSUED", "PARTIAL", "PAID", "CANCELLED"];
+const kinds = [
+  { key: "ALL", label: "All" },
+  { key: "TAX", label: "Invoices" },
+  { key: "ESTIMATE", label: "Estimates" },
+];
 
 export default function InvoiceListClient({ invoices }: { invoices: InvoiceRow[] }) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("ALL");
+  const [kind, setKind] = useState("ALL");
 
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return invoices.filter((i) => {
+      if (kind !== "ALL" && i.type !== kind) return false;
       if (status !== "ALL" && i.status !== status) return false;
       if (!needle) return true;
       return (
@@ -32,15 +39,30 @@ export default function InvoiceListClient({ invoices }: { invoices: InvoiceRow[]
         i.billName.toLowerCase().includes(needle)
       );
     });
-  }, [invoices, q, status]);
+  }, [invoices, q, status, kind]);
 
   return (
     <div>
+      <div className="mb-3 flex flex-wrap gap-2">
+        {kinds.map((k) => (
+          <button
+            key={k.key}
+            onClick={() => setKind(k.key)}
+            className={`rounded-full border px-4 py-1.5 text-xs font-medium transition-colors ${
+              kind === k.key
+                ? "border-gold bg-gold/10 text-gold"
+                : "border-white/15 text-muted hover:text-paper"
+            }`}
+          >
+            {k.label}
+          </button>
+        ))}
+      </div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search by invoice no. or customer…"
+          placeholder="Search by number or customer…"
           className="w-full rounded-lg border border-white/10 bg-ink/60 px-3 py-2 text-sm outline-none focus:border-gold sm:max-w-xs"
         />
         <div className="flex flex-wrap gap-2">

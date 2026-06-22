@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import { formatINR } from "@/lib/money";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -8,6 +9,8 @@ import {
   setInvoiceStatus,
   deleteInvoice,
   duplicateInvoice,
+  deletePayment,
+  convertEstimateToInvoice,
 } from "@/lib/actions/invoice-actions";
 import { shop } from "@/lib/shop";
 
@@ -37,15 +40,23 @@ export default async function InvoiceDetailPage({
   });
   if (!inv) notFound();
 
+  const isEstimate = inv.type === "ESTIMATE";
   const paid = inv.payments.reduce((s, p) => s + p.amount, 0);
   const balance = Math.max(inv.grandTotal - paid, 0);
 
+  // Public, shareable link to the invoice (for WhatsApp).
+  const h = await headers();
+  const host = h.get("host") ?? "";
+  const proto = host.includes("localhost") ? "http" : "https";
+  const publicUrl = host ? `${proto}://${host}/invoice/${inv.id}` : "";
+
   const waText =
-    `${shop.name}\n${inv.type === "TAX" ? "Tax Invoice" : "Estimate"}: ${inv.number}\n` +
+    `${shop.name}\n${isEstimate ? "Estimate" : "Tax Invoice"}: ${inv.number}\n` +
     `Date: ${inv.date.toLocaleDateString("en-IN")}\n` +
     `Total: ${formatINR(inv.grandTotal)}` +
-    (balance > 0 ? `\nBalance due: ${formatINR(balance)}` : `\nStatus: Paid`) +
-    `\nThank you!`;
+    (!isEstimate && balance > 0 ? `\nBalance due: ${formatINR(balance)}` : "") +
+    (publicUrl ? `\n\nView / download: ${publicUrl}` : "") +
+    `\n\nThank you!`;
   const wa = whatsappLink(inv.billPhone, waText);
 
   return (
@@ -80,6 +91,13 @@ export default async function InvoiceDetailPage({
             >
               WhatsApp
             </a>
+          )}
+          {isEstimate && (
+            <form action={convertEstimateToInvoice.bind(null, inv.id)}>
+              <button className="rounded-full border border-gold/50 bg-gold/10 px-4 py-2.5 text-sm font-semibold text-gold hover:bg-gold/20">
+                Create Invoice from this
+              </button>
+            </form>
           )}
           <Link
             href={`/admin/invoices/${inv.id}/edit`}
@@ -178,17 +196,21 @@ export default async function InvoiceDetailPage({
             )}
             <div className="my-2 border-t border-white/10" />
             <Line label="Grand Total" value={formatINR(inv.grandTotal)} strong />
-            <Line label="Received" value={formatINR(paid)} />
-            <Line
-              label="Balance"
-              value={formatINR(balance)}
-              strong
-              tone={balance > 0 ? "warn" : "ok"}
-            />
+            {!isEstimate && (
+              <>
+                <Line label="Received" value={formatINR(paid)} />
+                <Line
+                  label="Balance"
+                  value={formatINR(balance)}
+                  strong
+                  tone={balance > 0 ? "warn" : "ok"}
+                />
+              </>
+            )}
           </div>
 
           {/* Record payment */}
-          {balance > 0 && inv.status !== "CANCELLED" && (
+          {!isEstimate && balance > 0 && inv.status !== "CANCELLED" && (
             <form
               action={addPayment.bind(null, inv.id)}
               className="space-y-3 rounded-2xl border border-white/10 bg-ink-soft/40 p-5"
@@ -216,16 +238,27 @@ export default async function InvoiceDetailPage({
             </form>
           )}
 
-          {inv.payments.length > 0 && (
+          {!isEstimate && inv.payments.length > 0 && (
             <div className="rounded-2xl border border-white/10 bg-ink-soft/40 p-5">
               <h2 className="mb-3 font-heading font-bold">Payment History</h2>
               <ul className="space-y-2 text-sm">
                 {inv.payments.map((p) => (
-                  <li key={p.id} className="flex items-center justify-between">
+                  <li key={p.id} className="flex items-center justify-between gap-3">
                     <span className="text-muted">
                       {p.date.toLocaleDateString("en-IN")} · {p.mode}
+                      {p.note ? ` · ${p.note}` : ""}
                     </span>
-                    <span>{formatINR(p.amount)}</span>
+                    <span className="flex items-center gap-2">
+                      <span>{formatINR(p.amount)}</span>
+                      <form action={deletePayment.bind(null, p.id, inv.id)}>
+                        <button
+                          title="Revoke this payment"
+                          className="grid h-6 w-6 place-items-center rounded-full border border-white/10 text-xs text-muted hover:border-red-400/40 hover:text-red-300"
+                        >
+                          ✕
+                        </button>
+                      </form>
+                    </span>
                   </li>
                 ))}
               </ul>

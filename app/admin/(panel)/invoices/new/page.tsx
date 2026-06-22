@@ -16,7 +16,7 @@ const invoiceSteps = [
 ];
 
 export default async function NewInvoicePage() {
-  const [customers, materials] = await Promise.all([
+  const [customers, materials, estimates] = await Promise.all([
     prisma.customer.findMany({
       orderBy: { name: "asc" },
       select: { id: true, name: true, phone: true, gstin: true, address: true },
@@ -25,6 +25,32 @@ export default async function NewInvoicePage() {
       where: { isActive: true },
       orderBy: { name: "asc" },
       select: { id: true, name: true, unit: true, hsn: true, rate: true, taxRate: true },
+    }),
+    prisma.invoice.findMany({
+      where: { type: "ESTIMATE", status: { not: "CANCELLED" } },
+      orderBy: { date: "desc" },
+      take: 50,
+      select: {
+        id: true,
+        number: true,
+        billName: true,
+        billPhone: true,
+        billGstin: true,
+        billAddress: true,
+        customerId: true,
+        discount: true,
+        discountType: true,
+        items: {
+          select: {
+            description: true,
+            hsn: true,
+            unit: true,
+            quantity: true,
+            rate: true,
+            taxRate: true,
+          },
+        },
+      },
     }),
   ]);
 
@@ -37,7 +63,11 @@ export default async function NewInvoicePage() {
         <h1 className="font-heading text-3xl font-bold">New Invoice</h1>
         <HelpHint title="How to make an invoice" steps={invoiceSteps} />
       </div>
-      <InvoiceBuilder customers={customers} materials={materials} />
+      <InvoiceBuilder
+        customers={customers}
+        materials={materials}
+        estimates={estimates}
+      />
     </div>
   );
 }

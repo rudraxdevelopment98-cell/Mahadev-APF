@@ -45,6 +45,25 @@ type MaterialOpt = {
   rate: number;
   taxRate: number;
 };
+export type EstimateOpt = {
+  id: string;
+  number: string;
+  billName: string;
+  billPhone: string | null;
+  billGstin: string | null;
+  billAddress: string | null;
+  customerId: string | null;
+  discount: number;
+  discountType: string;
+  items: {
+    description: string;
+    hsn: string | null;
+    unit: string;
+    quantity: number;
+    rate: number;
+    taxRate: number;
+  }[];
+};
 
 type Row = {
   key: number;
@@ -75,12 +94,14 @@ const emptyRow = (): Row => ({
 export default function InvoiceBuilder({
   customers,
   materials,
+  estimates = [],
   mode = "create",
   invoiceId,
   initial,
 }: {
   customers: CustomerOpt[];
   materials: MaterialOpt[];
+  estimates?: EstimateOpt[];
   mode?: "create" | "edit";
   invoiceId?: string;
   initial?: InitialInvoice;
@@ -260,6 +281,31 @@ export default function InvoiceBuilder({
     ]);
   }
 
+  function importEstimate(id: string) {
+    const est = estimates.find((e) => e.id === id);
+    if (!est) return;
+    setCustomerId(est.customerId ?? "");
+    setBillName(est.billName);
+    setBillPhone(est.billPhone ?? "");
+    setBillGstin(est.billGstin ?? "");
+    setBillAddress(est.billAddress ?? "");
+    setDiscount(est.discount || 0);
+    setDiscountType(est.discountType === "PERCENT" ? "PERCENT" : "AMOUNT");
+    setRows(
+      est.items.length
+        ? est.items.map((i) => ({
+            key: rowSeq++,
+            description: i.description,
+            hsn: i.hsn ?? "",
+            unit: i.unit,
+            quantity: i.quantity,
+            rate: i.rate,
+            taxRate: i.taxRate || 18,
+          }))
+        : [emptyRow()],
+    );
+  }
+
   function updateRow(key: number, patch: Partial<Row>) {
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   }
@@ -329,6 +375,28 @@ export default function InvoiceBuilder({
             >
               Start fresh
             </button>
+          </div>
+        )}
+
+        {/* Import from an existing estimate */}
+        {draftEnabled && estimates.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-gold/25 bg-gold/5 px-4 py-3">
+            <span className="text-sm text-muted">
+              Start from an estimate? Pick one to pull in its customer &amp; items —
+              you can still edit and add more.
+            </span>
+            <select
+              value=""
+              onChange={(e) => e.target.value && importEstimate(e.target.value)}
+              className={inputCls + " w-auto"}
+            >
+              <option value="">Import from estimate…</option>
+              {estimates.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.number} — {e.billName}
+                </option>
+              ))}
+            </select>
           </div>
         )}
 

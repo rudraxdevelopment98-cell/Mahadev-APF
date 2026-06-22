@@ -248,6 +248,66 @@ export async function setInvoiceStatus(invoiceId: string, status: string) {
   revalidatePath("/admin/invoices");
 }
 
+/** Remove a wrongly-added payment and recompute status. */
+export async function deletePayment(paymentId: string, invoiceId: string) {
+  await requireAuth();
+  await prisma.payment.delete({ where: { id: paymentId } });
+  await refreshStatus(invoiceId);
+  revalidatePath(`/admin/invoices/${invoiceId}`);
+  revalidatePath("/admin");
+}
+
+/** Create a new GST Tax Invoice from an existing estimate (keeps the estimate). */
+export async function convertEstimateToInvoice(estimateId: string) {
+  await requireAuth();
+  const src = await prisma.invoice.findUnique({
+    where: { id: estimateId },
+    include: { items: true },
+  });
+  if (!src) return;
+
+  const date = new Date();
+  const settings = await getSettings();
+  const number = await nextInvoiceNumber(date, settings.invoicePrefix);
+
+  const created = await prisma.invoice.create({
+    data: {
+      number,
+      type: "TAX",
+      date,
+      status: "ISSUED",
+      customerId: src.customerId,
+      billName: src.billName,
+      billPhone: src.billPhone,
+      billGstin: src.billGstin,
+      billAddress: src.billAddress,
+      interState: src.interState,
+      showBank: src.showBank,
+      notes: src.notes,
+      discount: src.discount,
+      discountType: src.discountType,
+      subTotal: src.subTotal,
+      taxTotal: src.taxTotal,
+      roundOff: src.roundOff,
+      grandTotal: src.grandTotal,
+      items: {
+        create: src.items.map((i) => ({
+          description: i.description,
+          hsn: i.hsn,
+          unit: i.unit,
+          quantity: i.quantity,
+          rate: i.rate,
+          taxRate: i.taxRate,
+          amount: i.amount,
+        })),
+      },
+    },
+  });
+
+  revalidatePath("/admin/invoices");
+  redirect(`/admin/invoices/${created.id}/edit`);
+}
+
 export async function deleteInvoice(invoiceId: string) {
   await requireAuth();
   await prisma.invoice.delete({ where: { id: invoiceId } });

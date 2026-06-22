@@ -1,14 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { loginAction, type LoginState } from "@/lib/actions/auth-actions";
 import { shop } from "@/lib/shop";
 
-function LoginForm() {
+function LoginCard() {
   const params = useSearchParams();
-  const next = params.get("next") ?? "/admin";
   const errCode = params.get("error");
   const oauthError =
     errCode === "not_allowed"
@@ -18,14 +15,9 @@ function LoginForm() {
         : errCode === "google_failed"
           ? "Google sign-in failed. Please try again."
           : null;
-  const [state, action, pending] = useActionState<LoginState, FormData>(
-    loginAction,
-    {},
-  );
 
   return (
-    <form action={action} className="w-full max-w-sm">
-      <input type="hidden" name="next" value={next} />
+    <div className="w-full max-w-sm">
       <div className="mb-5 text-center">
         <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl border border-gold/50 font-heading text-lg font-bold text-gold">
           M
@@ -43,7 +35,7 @@ function LoginForm() {
 
         <a
           href="/api/auth/google"
-          className="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-[#1f1f1f] transition-opacity hover:opacity-90"
+          className="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-4 py-3 text-sm font-medium text-[#1f1f1f] transition-opacity hover:opacity-90"
         >
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -54,56 +46,11 @@ function LoginForm() {
           Sign in with Google
         </a>
 
-        <div className="flex items-center gap-3 text-xs text-muted">
-          <span className="h-px flex-1 bg-white/10" />
-          or use email
-          <span className="h-px flex-1 bg-white/10" />
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-xs uppercase tracking-[0.2em] text-muted">
-            Email
-          </label>
-          <input
-            name="email"
-            type="email"
-            autoComplete="username"
-            defaultValue="admin@mahadevapf.com"
-            required
-            className="w-full rounded-lg border border-white/10 bg-ink/60 px-4 py-2.5 text-sm outline-none focus:border-gold"
-          />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs uppercase tracking-[0.2em] text-muted">
-            Password
-          </label>
-          <input
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            className="w-full rounded-lg border border-white/10 bg-ink/60 px-4 py-2.5 text-sm outline-none focus:border-gold"
-          />
-        </div>
-
-        {state.error && (
-          <p className="text-sm text-red-400" role="alert">
-            {state.error}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={pending}
-          className="w-full rounded-full bg-gold py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-gold-soft disabled:opacity-60"
-        >
-          {pending ? "Signing in…" : "Sign in"}
-        </button>
         <p className="text-center text-xs text-muted">
-          Demo: admin@mahadevapf.com / admin123
+          Only approved Mahadev APF accounts can sign in.
         </p>
       </div>
-    </form>
+    </div>
   );
 }
 
@@ -111,7 +58,7 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-ink px-6">
       <Suspense>
-        <LoginForm />
+        <LoginCard />
       </Suspense>
     </main>
   );
