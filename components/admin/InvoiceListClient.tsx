@@ -27,6 +27,7 @@ export default function InvoiceListClient({ invoices }: { invoices: InvoiceRow[]
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("ALL");
   const [kind, setKind] = useState("ALL");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -42,6 +43,30 @@ export default function InvoiceListClient({ invoices }: { invoices: InvoiceRow[]
       );
     });
   }, [invoices, q, status, kind]);
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  const visibleIds = visible.map((v) => v.id);
+  const allVisibleSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
+
+  function toggleAll() {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) visibleIds.forEach((id) => next.delete(id));
+      else visibleIds.forEach((id) => next.add(id));
+      return next;
+    });
+  }
+
+  const reportHref = `/admin/reports?ids=${[...selected].join(",")}`;
 
   return (
     <div>
@@ -84,15 +109,54 @@ export default function InvoiceListClient({ invoices }: { invoices: InvoiceRow[]
         </div>
       </div>
 
+      {/* Selection action bar */}
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <Link
+          href="/admin/reports"
+          className="rounded-full border border-white/15 px-4 py-1.5 text-xs text-paper hover:border-gold hover:text-gold"
+        >
+          📊 Period report
+        </Link>
+        {selected.size > 0 ? (
+          <>
+            <span className="text-xs text-muted">{selected.size} selected</span>
+            <Link
+              href={reportHref}
+              className="rounded-full bg-gold px-4 py-1.5 text-xs font-semibold text-ink hover:bg-gold-soft"
+            >
+              Report from selected →
+            </Link>
+            <button
+              onClick={() => setSelected(new Set())}
+              className="text-xs text-muted hover:text-paper"
+            >
+              Clear
+            </button>
+          </>
+        ) : (
+          <span className="text-xs text-muted">
+            Tick rows to build a report from specific bills.
+          </span>
+        )}
+      </div>
+
       {visible.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-white/15 p-10 text-center text-muted">
           No matching invoices.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-white/10">
-          <table className="w-full min-w-[720px] text-sm">
+          <table className="w-full min-w-[760px] text-sm">
             <thead className="bg-white/5 text-left text-xs uppercase tracking-wider text-muted">
               <tr>
+                <th className="px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={toggleAll}
+                    aria-label="Select all"
+                  />
+                </th>
                 <th className="px-4 py-3">Invoice</th>
                 <th className="px-4 py-3">Customer</th>
                 <th className="px-4 py-3">Type</th>
@@ -105,6 +169,14 @@ export default function InvoiceListClient({ invoices }: { invoices: InvoiceRow[]
             <tbody>
               {visible.map((inv) => (
                 <tr key={inv.id} className="border-t border-white/5 hover:bg-white/5">
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(inv.id)}
+                      onChange={() => toggle(inv.id)}
+                      aria-label={`Select ${inv.number}`}
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/admin/invoices/${inv.id}`}

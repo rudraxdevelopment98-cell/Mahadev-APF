@@ -8,6 +8,7 @@ import { shop } from "@/lib/shop";
 const links = [
   { href: "/admin", label: "Dashboard", icon: "▤", exact: true },
   { href: "/admin/invoices", label: "Invoices", icon: "🧾" },
+  { href: "/admin/reports", label: "Reports", icon: "📊" },
   { href: "/admin/customers", label: "Customers", icon: "👥" },
   { href: "/admin/materials", label: "Rate List", icon: "📦" },
   { href: "/admin/services", label: "Services", icon: "🛠️" },
