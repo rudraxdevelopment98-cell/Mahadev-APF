@@ -28,24 +28,7 @@ function whatsappLink(phone: string | null, text: string): string | null {
 const inputCls =
   "w-full rounded-lg border border-white/10 bg-ink/60 px-3 py-2 text-sm outline-none focus:border-gold";
 
-export default async function InvoiceDetailPage(props: {
-  params: Promise<{ id: string }>;
-}) {
-  try {
-    return await InvoiceDetail(props);
-  } catch (e) {
-    const err = e as Error & { digest?: string };
-    // Let Next's control-flow errors (notFound / redirect) pass through.
-    if (typeof err?.digest === "string" && err.digest.startsWith("NEXT_")) throw e;
-    return (
-      <pre className="overflow-auto rounded-2xl border border-red-400/30 bg-red-400/5 p-5 text-xs text-red-200">
-        {`DEBUG — invoice page error\n\n${err?.message ?? String(e)}\n\n${err?.stack ?? ""}`}
-      </pre>
-    );
-  }
-}
-
-async function InvoiceDetail({
+export default async function InvoiceDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
