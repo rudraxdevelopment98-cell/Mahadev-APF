@@ -15,6 +15,7 @@ export type CreateInvoiceInput = {
   billGstin?: string;
   billAddress?: string;
   interState: boolean;
+  showBank: boolean;
   date?: string;
   discount: number;
   discountType: "AMOUNT" | "PERCENT";

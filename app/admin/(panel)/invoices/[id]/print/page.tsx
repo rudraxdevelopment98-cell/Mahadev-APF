@@ -132,12 +132,14 @@ export default async function InvoicePrintPage({
             <p className="font-semibold">Amount in words:</p>
             <p className="text-gray-700">{amountInWords(inv.grandTotal)}</p>
 
-            <div className="mt-4">
-              <p className="font-semibold">Bank Details:</p>
-              <p className="text-gray-700">
-                {shop.bankName} · A/c {shop.bankAccount} · IFSC {shop.bankIfsc}
-              </p>
-            </div>
+            {inv.showBank && (
+              <div className="mt-4">
+                <p className="font-semibold">Bank Details:</p>
+                <p className="text-gray-700">
+                  {shop.bankName} · A/c {shop.bankAccount} · IFSC {shop.bankIfsc}
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="w-64 text-xs">

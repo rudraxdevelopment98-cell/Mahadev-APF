@@ -9,6 +9,7 @@ import { units } from "@/lib/shop";
 export type InitialInvoice = {
   type: "TAX" | "ESTIMATE";
   interState: boolean;
+  showBank: boolean;
   customerId: string;
   billName: string;
   billPhone: string;
@@ -86,6 +87,7 @@ export default function InvoiceBuilder({
 }) {
   const [type, setType] = useState<"TAX" | "ESTIMATE">(initial?.type ?? "TAX");
   const [interState, setInterState] = useState(initial?.interState ?? false);
+  const [showBank, setShowBank] = useState(initial?.showBank ?? true);
   const [customerId, setCustomerId] = useState(initial?.customerId ?? "");
   const [billName, setBillName] = useState(initial?.billName ?? "");
   const [billPhone, setBillPhone] = useState(initial?.billPhone ?? "");
@@ -124,6 +126,7 @@ export default function InvoiceBuilder({
         if (d && typeof d === "object") {
           if (d.type) setType(d.type);
           setInterState(!!d.interState);
+          setShowBank(d.showBank !== false);
           setCustomerId(d.customerId ?? "");
           setBillName(d.billName ?? "");
           setBillPhone(d.billPhone ?? "");
@@ -167,7 +170,7 @@ export default function InvoiceBuilder({
       localStorage.setItem(
         DRAFT_KEY,
         JSON.stringify({
-          type, interState, customerId, billName, billPhone, billGstin,
+          type, interState, showBank, customerId, billName, billPhone, billGstin,
           billAddress, date, discount, discountType, roundOff, notes,
           rows: rows.map(({ description, hsn, unit, quantity, rate, taxRate }) => ({
             description, hsn, unit, quantity, rate, taxRate,
@@ -179,7 +182,7 @@ export default function InvoiceBuilder({
       /* ignore */
     }
   }, [
-    draftEnabled, type, interState, customerId, billName, billPhone, billGstin,
+    draftEnabled, type, interState, showBank, customerId, billName, billPhone, billGstin,
     billAddress, date, discount, discountType, roundOff, notes, rows,
   ]);
 
@@ -196,6 +199,7 @@ export default function InvoiceBuilder({
     clearDraft();
     setType("TAX");
     setInterState(false);
+    setShowBank(true);
     setCustomerId("");
     setBillName("");
     setBillPhone("");
@@ -279,6 +283,7 @@ export default function InvoiceBuilder({
       billGstin,
       billAddress,
       interState: isTax ? interState : false,
+      showBank,
       date,
       discount: Number(discount) || 0,
       discountType,
@@ -355,16 +360,32 @@ export default function InvoiceBuilder({
             </div>
           </div>
 
-          {isTax && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted">
+              {isTax
+                ? "GST is shown on this bill (Tax Invoice)."
+                : "GST is hidden on this bill (Estimate)."}{" "}
+              Switch the buttons above to show or hide GST.
+            </p>
+            {isTax && (
+              <label className="flex items-center gap-2 text-sm text-muted">
+                <input
+                  type="checkbox"
+                  checked={interState}
+                  onChange={(e) => setInterState(e.target.checked)}
+                />
+                Inter-state supply (apply IGST instead of CGST + SGST)
+              </label>
+            )}
             <label className="flex items-center gap-2 text-sm text-muted">
               <input
                 type="checkbox"
-                checked={interState}
-                onChange={(e) => setInterState(e.target.checked)}
+                checked={showBank}
+                onChange={(e) => setShowBank(e.target.checked)}
               />
-              Inter-state supply (apply IGST instead of CGST + SGST)
+              Show bank details on the bill
             </label>
-          )}
+          </div>
         </div>
 
         {/* Customer */}

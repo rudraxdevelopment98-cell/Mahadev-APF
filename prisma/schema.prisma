@@ -65,6 +65,7 @@ model Invoice {
   billGstin   String?
   billAddress String?
   interState  Boolean       @default(false) // true => IGST, false => CGST+SGST
+  showBank    Boolean       @default(true) // show bank details on the printed bill
   notes       String?
   discount    Float         @default(0)
   discountType String       @default("AMOUNT") // AMOUNT | PERCENT
