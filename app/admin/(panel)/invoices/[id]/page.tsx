@@ -17,13 +17,25 @@ import { invoiceTypeLabel } from "@/lib/invoice-types";
 
 export const dynamic = "force-dynamic";
 
-/** Build a wa.me link to send the customer a short invoice summary. */
-function whatsappLink(phone: string | null, text: string): string | null {
+/** Normalise an Indian phone number to wa.me digits (country code + number). */
+function waDigits(phone: string | null): string | null {
   if (!phone) return null;
-  let digits = phone.replace(/\D/g, "");
-  if (digits.length === 10) digits = "91" + digits; // assume India
-  if (digits.length < 11) return null;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+  const d = phone.replace(/\D/g, "").replace(/^0+/, ""); // digits, no leading zeros
+  const full = d.length === 10 ? "91" + d : d; // bare 10-digit Indian mobile
+  if (full.length < 11 || full.length > 15) return null; // not a usable number
+  return full;
+}
+
+/**
+ * Build a link that always opens WhatsApp. With a valid number it opens the
+ * chat with that customer; otherwise it opens the share picker so the owner
+ * can choose any contact. (wa.me rejects malformed numbers with
+ * "This link could not be opened in WhatsApp".)
+ */
+function whatsappLink(phone: string | null, text: string): string {
+  const num = waDigits(phone);
+  const t = encodeURIComponent(text);
+  return num ? `https://wa.me/${num}?text=${t}` : `https://wa.me/?text=${t}`;
 }
 
 const inputCls =
