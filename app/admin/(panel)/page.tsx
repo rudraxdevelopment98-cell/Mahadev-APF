@@ -16,18 +16,22 @@ export default async function DashboardPage() {
     prisma.material.count(),
   ]);
 
-  const withBalance = allInvoices.map((i) => {
+  // Estimates / quotations are not earnings — only real invoices (GST +
+  // No-GST) and their payments count towards sales, received and dues.
+  const bills = allInvoices.filter((i) => i.type !== "ESTIMATE");
+
+  const withBalance = bills.map((i) => {
     const paid = i.payments.reduce((s, p) => s + p.amount, 0);
     return { inv: i, paid, balance: Math.max(i.grandTotal - paid, 0) };
   });
 
-  const totalSales = allInvoices.reduce((s, i) => s + i.grandTotal, 0);
+  const totalSales = bills.reduce((s, i) => s + i.grandTotal, 0);
   const totalReceived = withBalance.reduce((s, x) => s + x.paid, 0);
   const outstanding = Math.max(totalSales - totalReceived, 0);
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const thisMonthSales = allInvoices
+  const thisMonthSales = bills
     .filter((i) => i.date >= monthStart)
     .reduce((s, i) => s + i.grandTotal, 0);
 
