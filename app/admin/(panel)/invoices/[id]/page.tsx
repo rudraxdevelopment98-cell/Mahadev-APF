@@ -76,7 +76,7 @@ export default async function InvoiceDetailPage({
               ? "GST Tax Invoice"
               : inv.type === "NOGST"
                 ? "Invoice (No GST)"
-                : "Estimate"}{" "}
+                : "Quotation"}{" "}
             · {inv.date.toLocaleDateString("en-IN")}
           </p>
         </div>
@@ -85,7 +85,7 @@ export default async function InvoiceDetailPage({
             href={`/admin/invoices/${inv.id}/print`}
             className="rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-ink hover:bg-gold-soft"
           >
-            Print / PDF
+            Download PDF
           </Link>
           {wa && (
             <a
@@ -94,7 +94,7 @@ export default async function InvoiceDetailPage({
               rel="noopener noreferrer"
               className="rounded-full border border-emerald-400/40 px-4 py-2.5 text-sm text-emerald-300 hover:bg-emerald-400/10"
             >
-              WhatsApp
+              WhatsApp link
             </a>
           )}
           {isEstimate && (
@@ -129,6 +129,12 @@ export default async function InvoiceDetailPage({
           </form>
         </div>
       </div>
+
+      <p className="mb-6 rounded-xl border border-white/10 bg-ink-soft/40 px-4 py-2.5 text-xs text-muted">
+        📎 To send on WhatsApp as a file: tap <b className="text-paper">Download PDF</b>,
+        save it, then open WhatsApp and attach the PDF from your files.
+        “WhatsApp link” instead sends a tap-to-open link to the {isEstimate ? "quotation" : "bill"}.
+      </p>
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         {/* Items + bill-to */}

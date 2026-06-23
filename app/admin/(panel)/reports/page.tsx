@@ -28,7 +28,7 @@ const TYPES = [
   { key: "INVOICES", label: "Invoices" },
   { key: "TAX", label: "GST only" },
   { key: "NOGST", label: "No-GST only" },
-  { key: "ESTIMATE", label: "Estimates" },
+  { key: "ESTIMATE", label: "Quotations" },
 ];
 
 function startOfFy(now: Date): Date {

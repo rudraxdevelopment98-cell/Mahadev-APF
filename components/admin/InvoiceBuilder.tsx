@@ -382,7 +382,7 @@ export default function InvoiceBuilder({
         {draftEnabled && estimates.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-gold/25 bg-gold/5 px-4 py-3">
             <span className="text-sm text-muted">
-              Start from an estimate? Pick one to pull in its customer &amp; items —
+              Start from a quotation? Pick one to pull in its customer &amp; items —
               you can still edit and add more.
             </span>
             <select
@@ -390,7 +390,7 @@ export default function InvoiceBuilder({
               onChange={(e) => e.target.value && importEstimate(e.target.value)}
               className={inputCls + " w-auto"}
             >
-              <option value="">Import from estimate…</option>
+              <option value="">Import from quotation…</option>
               {estimates.map((e) => (
                 <option key={e.id} value={e.id}>
                   {e.number} — {e.billName}

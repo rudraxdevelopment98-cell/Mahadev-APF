@@ -12,7 +12,7 @@ export type InvoiceType = "TAX" | "NOGST" | "ESTIMATE";
 
 /** Short document label used on screens, prints and WhatsApp messages. */
 export function invoiceTypeLabel(type: string): string {
-  if (type === "ESTIMATE") return "Estimate";
+  if (type === "ESTIMATE") return "Quotation";
   if (type === "NOGST") return "Invoice";
   return "Tax Invoice";
 }

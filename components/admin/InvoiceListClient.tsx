@@ -20,7 +20,7 @@ const statuses = ["ALL", "ISSUED", "PARTIAL", "PAID", "CANCELLED"];
 const kinds = [
   { key: "ALL", label: "All" },
   { key: "TAX", label: "Invoices" },
-  { key: "ESTIMATE", label: "Estimates" },
+  { key: "ESTIMATE", label: "Quotations" },
 ];
 
 export default function InvoiceListClient({ invoices }: { invoices: InvoiceRow[] }) {
@@ -191,7 +191,7 @@ export default function InvoiceListClient({ invoices }: { invoices: InvoiceRow[]
                       ? "Tax"
                       : inv.type === "NOGST"
                         ? "No GST"
-                        : "Estimate"}
+                        : "Quotation"}
                   </td>
                   <td className="px-4 py-3 text-muted">{inv.dateLabel}</td>
                   <td className="px-4 py-3 text-right">{formatINR(inv.grandTotal)}</td>
