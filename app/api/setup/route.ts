@@ -9,6 +9,19 @@ export const dynamic = "force-dynamic";
 const SETUP_KEY = "setup-mahadev-2026";
 
 const STATEMENTS: string[] = [
+  `CREATE TABLE IF NOT EXISTS "Tenant" (
+    "id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "plan" TEXT NOT NULL DEFAULT 'free',
+    "status" TEXT NOT NULL DEFAULT 'active',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Tenant_pkey" PRIMARY KEY ("id")
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "Tenant_slug_key" ON "Tenant"("slug")`,
+  `INSERT INTO "Tenant" ("id","slug","name","plan","status") VALUES
+    ('tenant_mahadev','mahadev','Mahadev APF','max','active')
+    ON CONFLICT ("slug") DO NOTHING`,
   `CREATE TABLE IF NOT EXISTS "User" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
