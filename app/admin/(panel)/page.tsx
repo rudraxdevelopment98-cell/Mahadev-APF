@@ -5,7 +5,12 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ denied?: string }>;
+}) {
+  const { denied } = await searchParams;
   const [allInvoices, customerCount, materialCount] = await Promise.all([
     prisma.invoice.findMany({
       where: { status: { not: "CANCELLED" } },
@@ -50,6 +55,12 @@ export default async function DashboardPage() {
 
   return (
     <div>
+      {denied && (
+        <div className="mb-6 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-sm text-amber-300">
+          You don&apos;t have access to that section. Ask an owner to grant it
+          under Users &amp; Access.
+        </div>
+      )}
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-heading text-3xl font-bold">Dashboard</h1>

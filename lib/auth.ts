@@ -12,7 +12,13 @@ function secret(): Uint8Array {
   return authSecretKey();
 }
 
-export type SessionUser = { id: string; name: string; email: string; role: string };
+export type SessionUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  perms: string[];
+};
 
 export async function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, 10);
@@ -27,11 +33,16 @@ export async function verifyCredentials(
   if (!user) return null;
   const ok = await bcrypt.compare(password, user.passwordHash);
   if (!ok) return null;
-  return { id: user.id, name: user.name, email: user.email, role: user.role };
+  return { id: user.id, name: user.name, email: user.email, role: user.role, perms: [] };
 }
 
 export async function createSession(user: SessionUser): Promise<void> {
-  const token = await new SignJWT({ name: user.name, email: user.email, role: user.role })
+  const token = await new SignJWT({
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    perms: user.perms ?? [],
+  })
     .setProtectedHeader({ alg: ALG })
     .setSubject(user.id)
     .setIssuedAt()
@@ -65,6 +76,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       name: String(payload.name ?? ""),
       email: String(payload.email ?? ""),
       role: String(payload.role ?? "STAFF"),
+      perms: Array.isArray(payload.perms) ? payload.perms.map(String) : [],
     };
   } catch {
     return null;

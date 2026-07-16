@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { isAllowedAdmin } from "@/lib/auth-google";
 import { createSession } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { parsePerms } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -46,16 +48,35 @@ export async function GET(request: Request) {
     );
     const profile = await profileRes.json();
     const email = String(profile.email ?? "").toLowerCase();
+    if (!profile.verified_email) return loginErr("not_allowed");
 
-    if (!profile.verified_email || !isAllowedAdmin(email)) {
-      return loginErr("not_allowed");
+    // Access is granted by the User table. The built-in owner emails are
+    // bootstrapped as OWNERs on first sign-in so they can never be locked out.
+    let dbUser = await prisma.user.findUnique({ where: { email } }).catch(() => null);
+
+    if (!dbUser && isAllowedAdmin(email)) {
+      dbUser = await prisma.user
+        .create({
+          data: {
+            email,
+            name: String(profile.name ?? email.split("@")[0]),
+            role: "OWNER",
+            permissions: "",
+            isActive: true,
+            passwordHash: "",
+          },
+        })
+        .catch(() => null);
     }
 
+    if (!dbUser || !dbUser.isActive) return loginErr("not_allowed");
+
     await createSession({
-      id: String(profile.id ?? email),
-      name: String(profile.name ?? email.split("@")[0]),
+      id: dbUser.id,
+      name: dbUser.name || String(profile.name ?? email.split("@")[0]),
       email,
-      role: "ADMIN",
+      role: dbUser.role,
+      perms: parsePerms(dbUser.permissions),
     });
 
     return NextResponse.redirect(new URL("/admin", url.origin));

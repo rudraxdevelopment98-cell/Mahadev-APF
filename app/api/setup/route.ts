@@ -118,6 +118,15 @@ const STATEMENTS: string[] = [
   `ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "discountType" TEXT NOT NULL DEFAULT 'AMOUNT'`,
   `ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "roundOff" DOUBLE PRECISION NOT NULL DEFAULT 0`,
   `ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "showBank" BOOLEAN NOT NULL DEFAULT true`,
+  // Admin users: granular access control.
+  `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "permissions" TEXT NOT NULL DEFAULT ''`,
+  `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN NOT NULL DEFAULT true`,
+  `ALTER TABLE "User" ALTER COLUMN "passwordHash" SET DEFAULT ''`,
+  `INSERT INTO "User" ("id","email","passwordHash","name","role","permissions","isActive") VALUES
+    ('own_atul','atuljotaniya151@gmail.com','','Atul','OWNER','',true),
+    ('own_rudrax','rudraxdevelopment98@gmail.com','','Rudrax','OWNER','',true),
+    ('own_kuldeep','kuldeepjotaniya83@gmail.com','','Kuldeep','OWNER','',true)
+    ON CONFLICT ("email") DO NOTHING`,
   `CREATE TABLE IF NOT EXISTS "Review" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,

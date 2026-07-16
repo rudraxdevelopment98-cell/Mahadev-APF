@@ -2,23 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SECTIONS, userCan } from "@/lib/permissions";
 
-const links = [
-  { href: "/admin", label: "Dashboard", exact: true },
-  { href: "/admin/invoices", label: "Invoices" },
-  { href: "/admin/reports", label: "Reports" },
-  { href: "/admin/customers", label: "Customers" },
-  { href: "/admin/materials", label: "Rate List" },
-  { href: "/admin/services", label: "Services" },
-  { href: "/admin/spaces", label: "Spaces" },
-  { href: "/admin/gallery", label: "Gallery" },
-  { href: "/admin/reviews", label: "Reviews" },
-  { href: "/admin/leads", label: "Enquiries" },
-  { href: "/admin/settings", label: "Settings" },
-];
-
-export default function AdminMobileNav() {
+export default function AdminMobileNav({
+  role,
+  perms,
+}: {
+  role: string;
+  perms: string[];
+}) {
   const pathname = usePathname() || "";
+
+  const links = [
+    { href: "/admin", label: "Dashboard", exact: true },
+    ...SECTIONS.filter((s) => userCan(role, perms, s.key)).map((s) => ({
+      href: s.href,
+      label: s.label,
+      exact: false,
+    })),
+  ];
+
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);
 

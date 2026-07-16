@@ -4,23 +4,28 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/lib/actions/auth-actions";
 import { shop } from "@/lib/shop";
+import { SECTIONS, userCan } from "@/lib/permissions";
 
-const links = [
-  { href: "/admin", label: "Dashboard", icon: "▤", exact: true },
-  { href: "/admin/invoices", label: "Invoices", icon: "🧾" },
-  { href: "/admin/reports", label: "Reports", icon: "📊" },
-  { href: "/admin/customers", label: "Customers", icon: "👥" },
-  { href: "/admin/materials", label: "Rate List", icon: "📦" },
-  { href: "/admin/services", label: "Services", icon: "🛠️" },
-  { href: "/admin/spaces", label: "Spaces", icon: "🏠" },
-  { href: "/admin/gallery", label: "Gallery", icon: "🖼️" },
-  { href: "/admin/reviews", label: "Reviews", icon: "⭐" },
-  { href: "/admin/leads", label: "Enquiries", icon: "📩" },
-  { href: "/admin/settings", label: "Settings", icon: "⚙️" },
-];
-
-export default function Sidebar({ userName }: { userName: string }) {
+export default function Sidebar({
+  userName,
+  role,
+  perms,
+}: {
+  userName: string;
+  role: string;
+  perms: string[];
+}) {
   const pathname = usePathname();
+
+  const links = [
+    { href: "/admin", label: "Dashboard", icon: "▤", exact: true },
+    ...SECTIONS.filter((s) => userCan(role, perms, s.key)).map((s) => ({
+      href: s.href,
+      label: s.label,
+      icon: s.icon,
+      exact: false,
+    })),
+  ];
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);

@@ -1,19 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { authSecretKey } from "@/lib/auth-secret";
+import { sectionForPath, userCan } from "@/lib/permissions";
 
 const COOKIE = "mapf_session";
-
-// Verify the session JWT at the edge (jose only — no Node APIs).
-async function isValid(token: string | undefined): Promise<boolean> {
-  if (!token) return false;
-  try {
-    await jwtVerify(token, authSecretKey());
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -23,13 +13,41 @@ export async function middleware(req: NextRequest) {
   const isLogin = pathname === "/admin/login";
   if (!isAdmin || isLogin) return NextResponse.next();
 
-  const ok = await isValid(req.cookies.get(COOKIE)?.value);
-  if (ok) return NextResponse.next();
+  const token = req.cookies.get(COOKIE)?.value;
+  let payload: Record<string, unknown> | null = null;
+  if (token) {
+    try {
+      payload = (await jwtVerify(token, authSecretKey())).payload as Record<
+        string,
+        unknown
+      >;
+    } catch {
+      payload = null;
+    }
+  }
 
-  const url = req.nextUrl.clone();
-  url.pathname = "/admin/login";
-  url.searchParams.set("next", pathname);
-  return NextResponse.redirect(url);
+  // Not signed in → login.
+  if (!payload) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/admin/login";
+    url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Signed in → enforce section permissions.
+  const section = sectionForPath(pathname);
+  if (section) {
+    const role = String(payload.role ?? "");
+    const perms = Array.isArray(payload.perms) ? payload.perms.map(String) : [];
+    if (!userCan(role, perms, section)) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/admin";
+      url.searchParams.set("denied", section);
+      return NextResponse.redirect(url);
+    }
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {

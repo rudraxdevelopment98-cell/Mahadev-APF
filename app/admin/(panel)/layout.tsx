@@ -14,7 +14,7 @@ export default async function PanelLayout({
 
   return (
     <div className="flex min-h-screen bg-ink text-paper">
-      <Sidebar userName={user.name} />
+      <Sidebar userName={user.name} role={user.role} perms={user.perms} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="no-print flex items-center justify-between border-b border-white/10 px-5 py-3 lg:hidden">
           <Link href="/admin" className="font-heading font-bold">
@@ -24,7 +24,7 @@ export default async function PanelLayout({
             + Invoice
           </Link>
         </header>
-        <AdminMobileNav />
+        <AdminMobileNav role={user.role} perms={user.perms} />
         <main className="min-w-0 flex-1 p-5 pb-24 md:p-8 lg:pb-8">{children}</main>
       </div>
     </div>
