@@ -22,6 +22,11 @@ export type CurrentTenant = {
   planDetails: Plan;
 };
 
+/** Just the current tenant id — for scoping queries (`where: { tenantId }`). */
+export async function getTenantId(): Promise<string> {
+  return (await getCurrentTenant()).id;
+}
+
 /** The current business account, or a safe fallback if none is seeded yet. */
 export async function getCurrentTenant(): Promise<CurrentTenant> {
   let row = null;
@@ -35,7 +40,7 @@ export async function getCurrentTenant(): Promise<CurrentTenant> {
   // a fully-featured account so nothing is gated off unexpectedly.
   const plan = row?.plan ?? "max";
   return {
-    id: row?.id ?? "default",
+    id: row?.id ?? "tenant_mahadev", // matches the DB column defaults
     slug: row?.slug ?? DEFAULT_TENANT_SLUG,
     name: row?.name ?? "Mahadev APF",
     plan,

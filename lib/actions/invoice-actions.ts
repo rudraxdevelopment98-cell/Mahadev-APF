@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { computeTotals, round2 } from "@/lib/money";
 import { getSettings } from "@/lib/settings-server";
+import { getTenantId } from "@/lib/tenant";
 import type { CreateInvoiceInput } from "@/lib/invoice-types";
 
 async function requireAuth() {
@@ -20,14 +21,19 @@ function financialYear(d: Date): string {
   return `${startYear}-${String((startYear + 1) % 100).padStart(2, "0")}`;
 }
 
-async function nextInvoiceNumber(date: Date, prefix: string): Promise<string> {
+async function nextInvoiceNumber(
+  tenantId: string,
+  date: Date,
+  prefix: string,
+): Promise<string> {
   const fy = financialYear(date);
   const start = new Date(date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1, 3, 1);
   const end = new Date(start.getFullYear() + 1, 3, 1);
   // Use the highest sequence already issued this financial year (not a count),
-  // so deleting an invoice can never reissue an existing number.
+  // so deleting an invoice can never reissue an existing number. Scoped to the
+  // tenant so each business keeps its own invoice series.
   const existing = await prisma.invoice.findMany({
-    where: { date: { gte: start, lt: end } },
+    where: { tenantId, date: { gte: start, lt: end } },
     select: { number: true },
   });
   let max = 0;
@@ -46,14 +52,15 @@ async function nextInvoiceNumber(date: Date, prefix: string): Promise<string> {
  * whatever was just taken.
  */
 async function createInvoiceWithNumber(
+  tenantId: string,
   date: Date,
   prefix: string,
   build: (number: string) => Parameters<typeof prisma.invoice.create>[0]["data"],
 ) {
   for (let attempt = 0; ; attempt++) {
-    const number = await nextInvoiceNumber(date, prefix);
+    const number = await nextInvoiceNumber(tenantId, date, prefix);
     try {
-      return await prisma.invoice.create({ data: build(number) });
+      return await prisma.invoice.create({ data: { ...build(number), tenantId } });
     } catch (e) {
       const code = (e as { code?: string })?.code;
       if (code === "P2002" && attempt < 5) continue;
@@ -90,8 +97,9 @@ export async function createInvoice(input: CreateInvoiceInput) {
 
   const date = input.date ? new Date(input.date) : new Date();
   const settings = await getSettings();
+  const tenantId = await getTenantId();
 
-  const invoice = await createInvoiceWithNumber(date, settings.invoicePrefix, (number) => ({
+  const invoice = await createInvoiceWithNumber(tenantId, date, settings.invoicePrefix, (number) => ({
     number,
     type: input.type,
     date,
@@ -199,8 +207,9 @@ export async function duplicateInvoice(id: string) {
 
   const date = new Date();
   const settings = await getSettings();
+  const tenantId = await getTenantId();
 
-  const created = await createInvoiceWithNumber(date, settings.invoicePrefix, (number) => ({
+  const created = await createInvoiceWithNumber(tenantId, date, settings.invoicePrefix, (number) => ({
     number,
     type: src.type,
     date,
@@ -293,8 +302,9 @@ export async function convertEstimateToInvoice(estimateId: string) {
 
   const date = new Date();
   const settings = await getSettings();
+  const tenantId = await getTenantId();
 
-  const created = await createInvoiceWithNumber(date, settings.invoicePrefix, (number) => ({
+  const created = await createInvoiceWithNumber(tenantId, date, settings.invoicePrefix, (number) => ({
     number,
     type: "TAX",
     date,
