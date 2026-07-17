@@ -25,6 +25,7 @@ model Tenant {
 
 model User {
   id           String   @id @default(cuid())
+  tenantId     String   @default("tenant_mahadev")
   email        String   @unique
   passwordHash String   @default("")
   name         String
@@ -32,11 +33,14 @@ model User {
   permissions  String   @default("") // CSV of section keys a STAFF user may open
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
+
+  @@index([tenantId])
 }
 
 /// A customer the shop bills.
 model Customer {
   id        String    @id @default(cuid())
+  tenantId  String    @default("tenant_mahadev")
   name      String
   phone     String?
   email     String?
@@ -46,11 +50,14 @@ model Customer {
   invoices  Invoice[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  @@index([tenantId])
 }
 
 /// Rate-list entry — covers both materials and labour/work items.
 model Material {
   id        String   @id @default(cuid())
+  tenantId  String   @default("tenant_mahadev")
   name      String
   category  String   @default("OTHER") // FURNITURE | ALUMINIUM | UPVC | GLASS | OTHER
   kind      String   @default("MATERIAL") // MATERIAL | WORK
@@ -61,11 +68,14 @@ model Material {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
 }
 
 /// A bill: either a GST tax invoice or a plain estimate.
 model Invoice {
   id          String        @id @default(cuid())
+  tenantId    String        @default("tenant_mahadev")
   number      String        @unique
   type        String        @default("TAX") // TAX | ESTIMATE
   date        DateTime      @default(now())
@@ -92,6 +102,7 @@ model Invoice {
   updatedAt   DateTime      @updatedAt
 
   @@index([date])
+  @@index([tenantId])
 }
 
 model InvoiceItem {
@@ -132,6 +143,7 @@ model SiteSetting {
 /// A service / type of work shown on the website (admin-managed).
 model Service {
   id        String   @id @default(cuid())
+  tenantId  String   @default("tenant_mahadev")
   title     String
   category  String   @default("Other")
   blurb     String
@@ -140,22 +152,28 @@ model Service {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
 }
 
 /// A work photo shown in the website gallery (admin-managed).
 model GalleryItem {
   id        String   @id @default(cuid())
+  tenantId  String   @default("tenant_mahadev")
   imageUrl  String
   caption   String?
   category  String?
   order     Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+
+  @@index([tenantId])
 }
 
 /// A customer review/testimonial shown on the website (admin-managed).
 model Review {
   id        String   @id @default(cuid())
+  tenantId  String   @default("tenant_mahadev")
   name      String
   location  String?
   quote     String
@@ -164,11 +182,14 @@ model Review {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
 }
 
 /// A "space we work in" card shown on the website (admin-managed, with image).
 model Space {
   id        String   @id @default(cuid())
+  tenantId  String   @default("tenant_mahadev")
   name      String
   body      String
   imageUrl  String?
@@ -176,11 +197,14 @@ model Space {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
 }
 
 /// An enquiry submitted through the website contact form.
 model Lead {
   id        String   @id @default(cuid())
+  tenantId  String   @default("tenant_mahadev")
   name      String
   phone     String?
   email     String?
@@ -190,4 +214,5 @@ model Lead {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+  @@index([tenantId])
 }
