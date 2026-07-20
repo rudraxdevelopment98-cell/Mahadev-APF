@@ -2,27 +2,25 @@ import "server-only";
 import { headers } from "next/headers";
 import { prisma } from "./db";
 import { getPlan, type Plan } from "./plans";
-import { tenantSlugFromHost } from "./host";
+import { tenantSlugFromHost, isPortalHost, normalizeHost } from "./host";
 
 /**
- * Resolves the "current business" for a request.
- *
- * The tenant is derived from the request host: `<slug>.rudrone.com` selects
- * that business. The bare portal, a client's own custom domain, localhost and
- * previews resolve to the default tenant, so the current single-tenant
- * deployment on its own domain keeps working unchanged.
+ * Resolves the "current business" for a request from the request host:
+ *   - `<slug>.rudrone.com`      -> that business (by slug)
+ *   - a business's own domain   -> that business (by Tenant.domain)
+ *   - the RudrOne portal / dev  -> the default business (keeps the current
+ *                                  single-tenant deployment working unchanged)
+ * So every business can live on its own URL while all of them sit inside RudrOne.
  */
 
 export const DEFAULT_TENANT_SLUG = "mahadev";
 
-/** The tenant slug for the current request host, or the default. */
-async function currentSlug(): Promise<string> {
+/** The request host (lowercased, no port), or "" outside a request scope. */
+async function currentHost(): Promise<string> {
   try {
-    const host = (await headers()).get("host");
-    return tenantSlugFromHost(host) ?? DEFAULT_TENANT_SLUG;
+    return normalizeHost((await headers()).get("host"));
   } catch {
-    // Outside a request scope (e.g. build-time) — fall back to the default.
-    return DEFAULT_TENANT_SLUG;
+    return "";
   }
 }
 
@@ -42,29 +40,37 @@ export async function getTenantId(): Promise<string> {
 
 /** The current business account, or a safe fallback if none is seeded yet. */
 export async function getCurrentTenant(): Promise<CurrentTenant> {
-  const slug = await currentSlug();
+  const host = await currentHost();
+  const subSlug = tenantSlugFromHost(host); // "mahadev" for mahadev.rudrone.com, else null
 
   let row = null;
   try {
-    row = await prisma.tenant.findUnique({ where: { slug } });
-    // If a subdomain points at a tenant that doesn't exist, don't silently
-    // serve the default business's data — fall back to default only for the
-    // default slug itself.
-    if (!row && slug === DEFAULT_TENANT_SLUG) {
-      row = null;
+    if (subSlug) {
+      // A platform subdomain names the business directly. If it doesn't exist,
+      // leave row null (unknown subdomain shows an empty business, not the default).
+      row = await prisma.tenant.findUnique({ where: { slug: subSlug } });
+    } else if (host && !isPortalHost(host)) {
+      // A business on its own domain (mahadevapf.com, mahadev-apf.vercel.app…).
+      row = await prisma.tenant.findFirst({ where: { domain: host } });
+    }
+    // Custom-domain miss, portal host, or build/dev (no host) → the default
+    // business, so the current single-tenant deployment keeps working.
+    if (!row && !subSlug) {
+      row = await prisma.tenant.findUnique({ where: { slug: DEFAULT_TENANT_SLUG } });
     }
   } catch {
     row = null;
   }
 
-  // Fallback: before the tenant table is seeded, treat the running business as
-  // a fully-featured account so nothing is gated off unexpectedly.
+  const slug = row?.slug ?? subSlug ?? DEFAULT_TENANT_SLUG;
   const isDefault = slug === DEFAULT_TENANT_SLUG;
+  // Before the tenant table is seeded, treat the default business as fully
+  // featured so nothing is gated off unexpectedly.
   const plan = row?.plan ?? (isDefault ? "max" : "free");
   return {
     id: row?.id ?? (isDefault ? "tenant_mahadev" : `tenant_${slug}`),
-    slug: row?.slug ?? slug,
-    name: row?.name ?? "Mahadev APF",
+    slug,
+    name: row?.name ?? (isDefault ? "Mahadev APF" : slug),
     plan,
     status: row?.status ?? "active",
     planDetails: getPlan(plan),

@@ -16,7 +16,8 @@ datasource db {
 /// existing single-business data belongs to the seeded default tenant.)
 model Tenant {
   id        String   @id @default(cuid())
-  slug      String   @unique // used for subdomain / URL, e.g. "mahadev"
+  slug      String   @unique // subdomain on the platform, e.g. "mahadev" -> mahadev.rudrone.com
+  domain    String?  @unique // the business's own host, e.g. "mahadevapf.com" or "mahadev-apf.vercel.app"
   name      String
   plan      String   @default("free") // free | plus | pro | max | custom
   status    String   @default("active") // active | trial | suspended

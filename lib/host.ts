@@ -20,6 +20,20 @@ function isPlatformHost(host: string): boolean {
   return host === PLATFORM.domain || host.endsWith(`.${PLATFORM.domain}`);
 }
 
+/** Strip the port and lowercase a host header. */
+export function normalizeHost(host: string | null | undefined): string {
+  return (host ?? "").split(":")[0].trim().toLowerCase();
+}
+
+/**
+ * True when the host serves the RudrOne portal itself (marketing, pricing,
+ * sign-up) rather than a business — the bare root domain or its www.
+ */
+export function isPortalHost(host: string | null | undefined): boolean {
+  const name = normalizeHost(host);
+  return name === PLATFORM.domain || name === `www.${PLATFORM.domain}`;
+}
+
 /**
  * Work out which tenant a request host points at.
  *

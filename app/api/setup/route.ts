@@ -19,6 +19,9 @@ const STATEMENTS: string[] = [
     CONSTRAINT "Tenant_pkey" PRIMARY KEY ("id")
   )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "Tenant_slug_key" ON "Tenant"("slug")`,
+  // A business can run on its own host (custom domain / vercel URL) inside RudrOne.
+  `ALTER TABLE "Tenant" ADD COLUMN IF NOT EXISTS "domain" TEXT`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "Tenant_domain_key" ON "Tenant"("domain")`,
   `INSERT INTO "Tenant" ("id","slug","name","plan","status") VALUES
     ('tenant_mahadev','mahadev','Mahadev APF','max','active')
     ON CONFLICT ("slug") DO NOTHING`,
