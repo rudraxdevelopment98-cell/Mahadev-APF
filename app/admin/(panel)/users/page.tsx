@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
+import { getTenantId } from "@/lib/tenant";
+import { hasFeature } from "@/lib/entitlements";
 import { isOwner } from "@/lib/permissions";
 import UsersManager from "@/components/admin/UsersManager";
 
@@ -10,10 +12,15 @@ export default async function UsersPage() {
   const me = await getSessionUser();
   if (!me) redirect("/admin/login");
   if (!isOwner(me.role)) redirect("/admin");
+  // Users & Access is a plan feature (Plus and up).
+  if (!(await hasFeature("multiUser"))) redirect("/admin?denied=users");
 
   let users: Awaited<ReturnType<typeof prisma.user.findMany>> = [];
   try {
-    users = await prisma.user.findMany({ orderBy: { createdAt: "asc" } });
+    users = await prisma.user.findMany({
+      where: { tenantId: await getTenantId() },
+      orderBy: { createdAt: "asc" },
+    });
   } catch {
     users = [];
   }

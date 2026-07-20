@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getSettings } from "@/lib/settings-server";
 import { getTenantId } from "@/lib/tenant";
+import { gateFeature } from "@/lib/entitlements";
 import { formatINR } from "@/lib/money";
 import { invoiceTypeLabel } from "@/lib/invoice-types";
 import PrintButton from "@/components/admin/PrintButton";
@@ -75,6 +76,7 @@ export default async function ReportsPage({
 }: {
   searchParams: Promise<Search>;
 }) {
+  await gateFeature("reports");
   const sp = await searchParams;
   const shop = await getSettings();
 

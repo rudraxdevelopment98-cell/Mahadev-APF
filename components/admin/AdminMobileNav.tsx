@@ -2,20 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SECTIONS, userCan } from "@/lib/permissions";
+import { SECTIONS, userCan, planHasSection } from "@/lib/permissions";
 
 export default function AdminMobileNav({
   role,
   perms,
+  planFeatures = [],
 }: {
   role: string;
   perms: string[];
+  planFeatures?: string[];
 }) {
   const pathname = usePathname() || "";
 
   const links = [
     { href: "/admin", label: "Dashboard", exact: true },
-    ...SECTIONS.filter((s) => userCan(role, perms, s.key)).map((s) => ({
+    ...SECTIONS.filter(
+      (s) => userCan(role, perms, s.key) && planHasSection(s.key, planFeatures),
+    ).map((s) => ({
       href: s.href,
       label: s.label,
       exact: false,

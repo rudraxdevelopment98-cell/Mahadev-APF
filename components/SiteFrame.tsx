@@ -16,9 +16,11 @@ import type { SiteSettings } from "@/lib/settings";
 export default function SiteFrame({
   site,
   children,
+  showBranding = false,
 }: {
   site: SiteSettings;
   children: React.ReactNode;
+  showBranding?: boolean;
 }) {
   const pathname = usePathname();
   // The admin area and the public invoice/estimate document have their own
@@ -34,7 +36,7 @@ export default function SiteFrame({
       <ScrollProgress />
       <Navbar site={site} />
       {children}
-      <Footer site={site} />
+      <Footer site={site} showBranding={showBranding} />
       {/* keeps the floating mobile nav from covering the footer */}
       <div className="h-24 lg:hidden" />
       <WhatsAppButton phone={site.whatsapp} />

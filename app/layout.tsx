@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import SiteFrame from "@/components/SiteFrame";
 import { getSettings } from "@/lib/settings-server";
+import { getCurrentTenant } from "@/lib/tenant";
+import { planAllows } from "@/lib/plans";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -49,7 +51,8 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const settings = await getSettings();
+  const [settings, tenant] = await Promise.all([getSettings(), getCurrentTenant()]);
+  const showBranding = !planAllows(tenant.plan, "removeBranding");
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
       <head>
@@ -57,7 +60,9 @@ export default async function RootLayout({
         <style>{`:root{--font-heading:var(--font-space-grotesk);--font-body:var(--font-inter);}`}</style>
       </head>
       <body>
-        <SiteFrame site={settings}>{children}</SiteFrame>
+        <SiteFrame site={settings} showBranding={showBranding}>
+          {children}
+        </SiteFrame>
       </body>
     </html>
   );

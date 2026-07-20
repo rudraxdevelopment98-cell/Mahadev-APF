@@ -7,6 +7,8 @@
  *   - STAFF: can only open the sections explicitly granted to them.
  */
 
+import type { Feature } from "./plans";
+
 export type Section =
   | "invoices"
   | "reports"
@@ -42,6 +44,26 @@ export const SECTIONS: {
 
 /** Section keys a STAFF user can be granted (everything except owner-only). */
 export const GRANTABLE_SECTIONS = SECTIONS.filter((s) => !s.ownerOnly);
+
+/**
+ * Which plan feature a section requires, if any. Sections without an entry are
+ * core (available on every plan). Used to hide nav items a plan can't reach.
+ */
+export const SECTION_FEATURE: Partial<Record<Section, Feature>> = {
+  reports: "reports",
+  services: "website",
+  spaces: "website",
+  leads: "website",
+  gallery: "gallery",
+  reviews: "reviews",
+  users: "multiUser",
+};
+
+/** Does the plan (given its feature list) unlock this section? */
+export function planHasSection(section: Section, planFeatures: string[]): boolean {
+  const needed = SECTION_FEATURE[section];
+  return !needed || planFeatures.includes(needed);
+}
 
 export function isOwner(role: string | null | undefined): boolean {
   return role === "OWNER" || role === "ADMIN"; // ADMIN kept for older sessions

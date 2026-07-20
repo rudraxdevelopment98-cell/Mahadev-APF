@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSessionUser } from "@/lib/auth";
+import { getCurrentTenant } from "@/lib/tenant";
 import Sidebar from "@/components/admin/Sidebar";
 import AdminMobileNav from "@/components/admin/AdminMobileNav";
 
@@ -11,10 +12,11 @@ export default async function PanelLayout({
 }) {
   const user = await getSessionUser();
   if (!user) redirect("/admin/login");
+  const planFeatures = (await getCurrentTenant()).planDetails.features;
 
   return (
     <div className="flex min-h-screen bg-ink text-paper">
-      <Sidebar userName={user.name} role={user.role} perms={user.perms} />
+      <Sidebar userName={user.name} role={user.role} perms={user.perms} planFeatures={planFeatures} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="no-print flex items-center justify-between border-b border-white/10 px-5 py-3 lg:hidden">
           <Link href="/admin" className="font-heading font-bold">
@@ -24,7 +26,7 @@ export default async function PanelLayout({
             + Invoice
           </Link>
         </header>
-        <AdminMobileNav role={user.role} perms={user.perms} />
+        <AdminMobileNav role={user.role} perms={user.perms} planFeatures={planFeatures} />
         <main className="min-w-0 flex-1 p-5 pb-24 md:p-8 lg:pb-8">{children}</main>
       </div>
     </div>

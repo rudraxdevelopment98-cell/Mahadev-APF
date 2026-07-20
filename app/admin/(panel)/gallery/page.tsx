@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/db";
 import { getTenantId } from "@/lib/tenant";
+import { gateFeature } from "@/lib/entitlements";
 import { deleteGalleryItem } from "@/lib/actions/gallery-actions";
 import GalleryUploadForm from "@/components/admin/GalleryUploadForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function GalleryAdminPage() {
+  await gateFeature("gallery");
   // Blob can be connected via a read-write token OR via OIDC (store ID).
   const blobOn = Boolean(
     process.env.BLOB_READ_WRITE_TOKEN ||

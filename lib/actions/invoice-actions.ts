@@ -7,6 +7,7 @@ import { getSessionUser } from "@/lib/auth";
 import { computeTotals, round2 } from "@/lib/money";
 import { getSettings } from "@/lib/settings-server";
 import { getTenantId } from "@/lib/tenant";
+import { assertInvoiceQuota } from "@/lib/entitlements";
 import type { CreateInvoiceInput } from "@/lib/invoice-types";
 
 async function requireAuth() {
@@ -71,6 +72,7 @@ async function createInvoiceWithNumber(
 
 export async function createInvoice(input: CreateInvoiceInput) {
   await requireAuth();
+  await assertInvoiceQuota();
 
   const items = (input.items ?? []).filter(
     (i) => i.description.trim() && (Number(i.quantity) || 0) > 0,

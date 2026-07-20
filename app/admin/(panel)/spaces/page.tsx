@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getTenantId } from "@/lib/tenant";
+import { gateFeature } from "@/lib/entitlements";
 import { createSpace, deleteSpace } from "@/lib/actions/space-actions";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,7 @@ const input =
   "w-full rounded-lg border border-white/10 bg-ink/60 px-3 py-2 text-sm outline-none focus:border-gold";
 
 export default async function SpacesPage() {
+  await gateFeature("website");
   let spaces: Awaited<ReturnType<typeof prisma.space.findMany>> = [];
   try {
     spaces = await prisma.space.findMany({
