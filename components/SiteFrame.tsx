@@ -23,10 +23,14 @@ export default function SiteFrame({
   showBranding?: boolean;
 }) {
   const pathname = usePathname();
-  // The admin area and the public invoice/estimate document have their own
-  // standalone layout — no marketing nav, footer or floating buttons.
+  // The admin area, the public invoice document, and the RudrOne portal pages
+  // (sign-up + landing) have their own standalone layout — no business-site
+  // marketing nav, footer or floating buttons.
   const bare =
-    pathname?.startsWith("/admin") || pathname?.startsWith("/invoice");
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/invoice") ||
+    pathname?.startsWith("/signup") ||
+    pathname?.startsWith("/rudrone");
 
   if (bare) return <>{children}</>;
 
