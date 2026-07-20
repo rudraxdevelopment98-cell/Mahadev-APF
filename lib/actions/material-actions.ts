@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
+import { getTenantId } from "@/lib/tenant";
 import { redirect } from "next/navigation";
 
 async function requireAuth() {
@@ -26,7 +27,7 @@ export async function createMaterial(formData: FormData) {
   await requireAuth();
   const data = parse(formData);
   if (!data.name) return;
-  await prisma.material.create({ data });
+  await prisma.material.create({ data: { ...data, tenantId: await getTenantId() } });
   revalidatePath("/admin/materials");
 }
 

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { getTenantId } from "@/lib/tenant";
 import { setLeadStatus, deleteLead } from "@/lib/actions/lead-actions";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +13,10 @@ const statusStyles: Record<string, string> = {
 export default async function LeadsPage() {
   let leads: Awaited<ReturnType<typeof prisma.lead.findMany>> = [];
   try {
-    leads = await prisma.lead.findMany({ orderBy: { createdAt: "desc" } });
+    leads = await prisma.lead.findMany({
+      where: { tenantId: await getTenantId() },
+      orderBy: { createdAt: "desc" },
+    });
   } catch {
     leads = [];
   }

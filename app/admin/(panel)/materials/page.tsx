@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { getTenantId } from "@/lib/tenant";
 import { createMaterial, deleteMaterial } from "@/lib/actions/material-actions";
 import { categoryLabels, units, type ServiceCategory } from "@/lib/shop";
 import { formatINR } from "@/lib/money";
@@ -10,6 +11,7 @@ const inputCls =
 
 export default async function MaterialsPage() {
   const materials = await prisma.material.findMany({
+    where: { tenantId: await getTenantId() },
     orderBy: [{ category: "asc" }, { name: "asc" }],
   });
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { getTenantId } from "@/lib/tenant";
 import { createReview, deleteReview } from "@/lib/actions/review-actions";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,7 @@ export default async function ReviewsPage() {
   let reviews: Awaited<ReturnType<typeof prisma.review.findMany>> = [];
   try {
     reviews = await prisma.review.findMany({
+      where: { tenantId: await getTenantId() },
       orderBy: [{ order: "asc" }, { createdAt: "desc" }],
     });
   } catch {

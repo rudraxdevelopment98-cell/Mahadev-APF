@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "./db";
+import { getTenantId } from "./tenant";
 import { defaultServices, type ServiceItem } from "./services";
 
 function toPoints(value: unknown): string[] {
@@ -11,7 +12,7 @@ function toPoints(value: unknown): string[] {
 export async function getServices(): Promise<ServiceItem[]> {
   try {
     const rows = await prisma.service.findMany({
-      where: { isActive: true },
+      where: { tenantId: await getTenantId(), isActive: true },
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
     if (!rows.length) return defaultServices;

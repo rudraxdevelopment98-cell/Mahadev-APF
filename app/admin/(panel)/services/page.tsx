@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { getTenantId } from "@/lib/tenant";
 import { createService, deleteService } from "@/lib/actions/service-actions";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,7 @@ export default async function ServicesPage() {
   let services: Awaited<ReturnType<typeof prisma.service.findMany>> = [];
   try {
     services = await prisma.service.findMany({
+      where: { tenantId: await getTenantId() },
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
   } catch {

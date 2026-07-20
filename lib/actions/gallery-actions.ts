@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { put } from "@vercel/blob";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
+import { getTenantId } from "@/lib/tenant";
 
 async function requireAuth() {
   const user = await getSessionUser();
@@ -51,6 +52,7 @@ export async function createGalleryItem(
       caption: String(formData.get("caption") ?? "").trim() || null,
       category: String(formData.get("category") ?? "").trim() || null,
       order: Number(formData.get("order")) || 0,
+      tenantId: await getTenantId(),
     },
   });
   refresh();

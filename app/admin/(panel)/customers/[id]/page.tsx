@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { getTenantId } from "@/lib/tenant";
 import { updateCustomer } from "@/lib/actions/customer-actions";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,9 @@ export default async function EditCustomerPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const customer = await prisma.customer.findUnique({ where: { id } });
+  const customer = await prisma.customer.findFirst({
+    where: { id, tenantId: await getTenantId() },
+  });
   if (!customer) notFound();
 
   const save = updateCustomer.bind(null, id);

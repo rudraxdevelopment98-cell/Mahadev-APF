@@ -199,15 +199,15 @@ export async function updateInvoice(id: string, input: CreateInvoiceInput) {
 /** Create a fresh invoice copying another one's customer + items. */
 export async function duplicateInvoice(id: string) {
   await requireAuth();
-  const src = await prisma.invoice.findUnique({
-    where: { id },
+  const tenantId = await getTenantId();
+  const src = await prisma.invoice.findFirst({
+    where: { id, tenantId },
     include: { items: true },
   });
   if (!src) return;
 
   const date = new Date();
   const settings = await getSettings();
-  const tenantId = await getTenantId();
 
   const created = await createInvoiceWithNumber(tenantId, date, settings.invoicePrefix, (number) => ({
     number,
@@ -294,15 +294,15 @@ export async function deletePayment(paymentId: string, invoiceId: string) {
 /** Create a new GST Tax Invoice from an existing estimate (keeps the estimate). */
 export async function convertEstimateToInvoice(estimateId: string) {
   await requireAuth();
-  const src = await prisma.invoice.findUnique({
-    where: { id: estimateId },
+  const tenantId = await getTenantId();
+  const src = await prisma.invoice.findFirst({
+    where: { id: estimateId, tenantId },
     include: { items: true },
   });
   if (!src) return;
 
   const date = new Date();
   const settings = await getSettings();
-  const tenantId = await getTenantId();
 
   const created = await createInvoiceWithNumber(tenantId, date, settings.invoicePrefix, (number) => ({
     number,

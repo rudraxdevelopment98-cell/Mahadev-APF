@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { getTenantId } from "@/lib/tenant";
 import { formatINR } from "@/lib/money";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 
@@ -11,14 +12,15 @@ export default async function DashboardPage({
   searchParams: Promise<{ denied?: string }>;
 }) {
   const { denied } = await searchParams;
+  const tenantId = await getTenantId();
   const [allInvoices, customerCount, materialCount] = await Promise.all([
     prisma.invoice.findMany({
-      where: { status: { not: "CANCELLED" } },
+      where: { tenantId, status: { not: "CANCELLED" } },
       orderBy: { createdAt: "desc" },
       include: { payments: { select: { amount: true } } },
     }),
-    prisma.customer.count(),
-    prisma.material.count(),
+    prisma.customer.count({ where: { tenantId } }),
+    prisma.material.count({ where: { tenantId } }),
   ]);
 
   // Estimates / quotations are not earnings — only real invoices (GST +

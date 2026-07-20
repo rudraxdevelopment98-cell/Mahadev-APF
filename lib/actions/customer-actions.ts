@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
+import { getTenantId } from "@/lib/tenant";
 
 async function requireAuth() {
   const user = await getSessionUser();
@@ -25,7 +26,7 @@ export async function createCustomer(formData: FormData) {
   await requireAuth();
   const data = parse(formData);
   if (!data.name) return;
-  await prisma.customer.create({ data });
+  await prisma.customer.create({ data: { ...data, tenantId: await getTenantId() } });
   revalidatePath("/admin/customers");
 }
 

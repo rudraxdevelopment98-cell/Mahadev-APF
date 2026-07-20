@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { getTenantId } from "@/lib/tenant";
 import { deleteGalleryItem } from "@/lib/actions/gallery-actions";
 import GalleryUploadForm from "@/components/admin/GalleryUploadForm";
 
@@ -14,6 +15,7 @@ export default async function GalleryAdminPage() {
   let items: Awaited<ReturnType<typeof prisma.galleryItem.findMany>> = [];
   try {
     items = await prisma.galleryItem.findMany({
+      where: { tenantId: await getTenantId() },
       orderBy: [{ order: "asc" }, { createdAt: "desc" }],
     });
   } catch {

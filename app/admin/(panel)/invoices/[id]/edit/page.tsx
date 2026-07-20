@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { getTenantId } from "@/lib/tenant";
 import InvoiceBuilder, { type InitialInvoice } from "@/components/admin/InvoiceBuilder";
 
 export const dynamic = "force-dynamic";
@@ -11,14 +12,16 @@ export default async function EditInvoicePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const tenantId = await getTenantId();
   const [inv, customers, materials] = await Promise.all([
-    prisma.invoice.findUnique({ where: { id }, include: { items: true } }),
+    prisma.invoice.findFirst({ where: { id, tenantId }, include: { items: true } }),
     prisma.customer.findMany({
+      where: { tenantId },
       orderBy: { name: "asc" },
       select: { id: true, name: true, phone: true, gstin: true, address: true },
     }),
     prisma.material.findMany({
-      where: { isActive: true },
+      where: { tenantId, isActive: true },
       orderBy: { name: "asc" },
       select: { id: true, name: true, unit: true, hsn: true, rate: true, taxRate: true },
     }),

@@ -14,6 +14,7 @@ import {
 } from "@/lib/actions/invoice-actions";
 import { shop } from "@/lib/shop";
 import { invoiceTypeLabel } from "@/lib/invoice-types";
+import { getTenantId } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
@@ -47,8 +48,8 @@ export default async function InvoiceDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const inv = await prisma.invoice.findUnique({
-    where: { id },
+  const inv = await prisma.invoice.findFirst({
+    where: { id, tenantId: await getTenantId() },
     include: { items: true, payments: { orderBy: { date: "desc" } } },
   });
   if (!inv) notFound();

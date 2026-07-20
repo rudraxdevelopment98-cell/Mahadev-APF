@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { getTenantId } from "@/lib/tenant";
 import { createSpace, deleteSpace } from "@/lib/actions/space-actions";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,7 @@ export default async function SpacesPage() {
   let spaces: Awaited<ReturnType<typeof prisma.space.findMany>> = [];
   try {
     spaces = await prisma.space.findMany({
+      where: { tenantId: await getTenantId() },
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
   } catch {

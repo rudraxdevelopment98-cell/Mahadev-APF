@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { getTenantId } from "@/lib/tenant";
 import { createCustomer, deleteCustomer } from "@/lib/actions/customer-actions";
 import HelpHint from "@/components/admin/HelpHint";
 
@@ -18,6 +19,7 @@ const inputCls =
 
 export default async function CustomersPage() {
   const customers = await prisma.customer.findMany({
+    where: { tenantId: await getTenantId() },
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { invoices: true } } },
   });
