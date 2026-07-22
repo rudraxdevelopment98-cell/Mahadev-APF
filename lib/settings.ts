@@ -46,6 +46,8 @@ export type SiteSettings = {
   googleReviewUrl: string;
   // Section images
   aboutImageUrl: string;
+  // Appearance — chosen site theme (see lib/themes)
+  theme: string;
 };
 
 export const defaultSettings: SiteSettings = {
@@ -80,6 +82,7 @@ export const defaultSettings: SiteSettings = {
   logoUrl: "",
   googleReviewUrl: "",
   aboutImageUrl: "",
+  theme: "artisan",
 };
 
 /** Merge a partial (from the database) over the defaults. */

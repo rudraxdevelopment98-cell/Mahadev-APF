@@ -7,6 +7,9 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { getTenantId } from "@/lib/tenant";
+import { getSettings } from "@/lib/settings-server";
+import { assertFeature } from "@/lib/entitlements";
+import { getTheme } from "@/lib/themes";
 import type { SiteSettings } from "@/lib/settings";
 
 export async function saveSettings(formData: FormData) {
@@ -34,6 +37,9 @@ export async function saveSettings(formData: FormData) {
 
   const logoUrl = await uploadImage("logo", "logo", get("logoUrl"));
   const aboutImageUrl = await uploadImage("aboutImage", "about", get("aboutImageUrl"));
+
+  // The big content form doesn't edit the theme — keep the current one.
+  const currentTheme = (await getSettings()).theme;
 
   const num = (k: string) => Number(formData.get(k)) || 0;
   const stats = [0, 1, 2, 3].map((i) => ({
@@ -72,6 +78,7 @@ export async function saveSettings(formData: FormData) {
     logoUrl,
     googleReviewUrl: get("googleReviewUrl"),
     aboutImageUrl,
+    theme: currentTheme,
   };
 
   const json = data as unknown as Prisma.InputJsonObject;
@@ -85,4 +92,24 @@ export async function saveSettings(formData: FormData) {
   // Refresh the whole site so the new content shows immediately.
   revalidatePath("/", "layout");
   redirect("/admin/settings?saved=1");
+}
+
+/** Change the business's site theme (Appearance). A website-plan feature. */
+export async function setSiteTheme(formData: FormData) {
+  const user = await getSessionUser();
+  if (!user) redirect("/admin/login");
+  await assertFeature("website");
+
+  const themeId = getTheme(String(formData.get("theme") ?? "")).id;
+  const current = await getSettings();
+  const data = { ...current, theme: themeId } as unknown as Prisma.InputJsonObject;
+  const tenantId = await getTenantId();
+  await prisma.siteSetting.upsert({
+    where: { tenantId },
+    update: { data },
+    create: { tenantId, data },
+  });
+
+  revalidatePath("/", "layout");
+  redirect("/admin/appearance?saved=1");
 }

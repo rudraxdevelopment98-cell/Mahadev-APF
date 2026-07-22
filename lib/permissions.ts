@@ -19,6 +19,7 @@ export type Section =
   | "gallery"
   | "reviews"
   | "leads"
+  | "appearance"
   | "settings"
   | "users";
 
@@ -38,6 +39,7 @@ export const SECTIONS: {
   { key: "gallery", label: "Gallery", icon: "🖼️", href: "/admin/gallery" },
   { key: "reviews", label: "Reviews", icon: "⭐", href: "/admin/reviews" },
   { key: "leads", label: "Enquiries", icon: "📩", href: "/admin/leads" },
+  { key: "appearance", label: "Appearance", icon: "🎨", href: "/admin/appearance" },
   { key: "settings", label: "Settings", icon: "⚙️", href: "/admin/settings" },
   { key: "users", label: "Users & Access", icon: "🔑", href: "/admin/users", ownerOnly: true },
 ];
@@ -56,6 +58,7 @@ export const SECTION_FEATURE: Partial<Record<Section, Feature>> = {
   leads: "website",
   gallery: "gallery",
   reviews: "reviews",
+  appearance: "website",
   users: "multiUser",
 };
 

@@ -4,6 +4,7 @@ import SiteFrame from "@/components/SiteFrame";
 import { getSettings } from "@/lib/settings-server";
 import { getCurrentTenant } from "@/lib/tenant";
 import { planAllows } from "@/lib/plans";
+import { themeVars } from "@/lib/themes";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -53,8 +54,15 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const [settings, tenant] = await Promise.all([getSettings(), getCurrentTenant()]);
   const showBranding = !planAllows(tenant.plan, "removeBranding");
+  // Re-skin the whole site to the business's chosen theme (Artisan = default,
+  // identical to the original look).
+  const themeStyle = themeVars(settings.theme) as React.CSSProperties;
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
+    <html
+      lang="en"
+      className={`${spaceGrotesk.variable} ${inter.variable}`}
+      style={themeStyle}
+    >
       <head>
         {/* Map Tailwind font tokens to the next/font CSS variables */}
         <style>{`:root{--font-heading:var(--font-space-grotesk);--font-body:var(--font-inter);}`}</style>
