@@ -6,6 +6,7 @@ import { put } from "@vercel/blob";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
+import { getTenantId } from "@/lib/tenant";
 import type { SiteSettings } from "@/lib/settings";
 
 export async function saveSettings(formData: FormData) {
@@ -74,10 +75,11 @@ export async function saveSettings(formData: FormData) {
   };
 
   const json = data as unknown as Prisma.InputJsonObject;
+  const tenantId = await getTenantId();
   await prisma.siteSetting.upsert({
-    where: { id: 1 },
+    where: { tenantId },
     update: { data: json },
-    create: { id: 1, data: json },
+    create: { tenantId, data: json },
   });
 
   // Refresh the whole site so the new content shows immediately.

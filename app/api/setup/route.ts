@@ -104,11 +104,24 @@ const STATEMENTS: string[] = [
     CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
   )`,
   `CREATE TABLE IF NOT EXISTS "SiteSetting" (
-    "id" INTEGER NOT NULL,
+    "tenantId" TEXT NOT NULL,
     "data" JSONB NOT NULL,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    CONSTRAINT "SiteSetting_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "SiteSetting_pkey" PRIMARY KEY ("tenantId")
   )`,
+  // Migrate an existing singleton SiteSetting (id=1) to per-business (keyed by
+  // tenantId), preserving the current business's saved content. Runs once.
+  `DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_name='SiteSetting' AND column_name='id') THEN
+      ALTER TABLE "SiteSetting" ADD COLUMN IF NOT EXISTS "tenantId" TEXT;
+      UPDATE "SiteSetting" SET "tenantId" = 'tenant_mahadev' WHERE "tenantId" IS NULL;
+      ALTER TABLE "SiteSetting" ALTER COLUMN "tenantId" SET NOT NULL;
+      ALTER TABLE "SiteSetting" DROP CONSTRAINT IF EXISTS "SiteSetting_pkey";
+      ALTER TABLE "SiteSetting" ADD CONSTRAINT "SiteSetting_pkey" PRIMARY KEY ("tenantId");
+      ALTER TABLE "SiteSetting" DROP COLUMN "id";
+    END IF;
+  END $$`,
   `CREATE TABLE IF NOT EXISTS "Service" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,

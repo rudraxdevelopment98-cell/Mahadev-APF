@@ -136,7 +136,7 @@ model Payment {
 
 /// Editable website content (singleton row, id = 1) managed from the admin.
 model SiteSetting {
-  id        Int      @id @default(1)
+  tenantId  String   @id // one row of site content/theme per business
   data      Json
   updatedAt DateTime @updatedAt
 }
