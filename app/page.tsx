@@ -8,6 +8,7 @@ import Industries from "@/components/Industries";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import Testimonials from "@/components/Testimonials";
 import Gallery from "@/components/Gallery";
+import Booking from "@/components/Booking";
 import Contact from "@/components/Contact";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -15,19 +16,22 @@ import { getSettings } from "@/lib/settings-server";
 import { getGallery } from "@/lib/gallery-server";
 import { getReviews } from "@/lib/reviews-server";
 import { getSpaces } from "@/lib/spaces-server";
+import { getCurrentTenant } from "@/lib/tenant";
 import { isPortalHost } from "@/lib/host";
-import { normalizeSections } from "@/lib/sections";
+import { planAllows } from "@/lib/plans";
+import { normalizeSections, sectionFeature } from "@/lib/sections";
 
 export default async function Home() {
   // On the RudrOne portal host, the homepage is the platform landing, not a
   // business site.
   if (isPortalHost((await headers()).get("host"))) redirect("/rudrone");
 
-  const [site, gallery, reviews, spaces] = await Promise.all([
+  const [site, gallery, reviews, spaces, tenant] = await Promise.all([
     getSettings(),
     getGallery(),
     getReviews(),
     getSpaces(),
+    getCurrentTenant(),
   ]);
 
   // Which homepage sections this business shows, and in what order.
@@ -40,9 +44,14 @@ export default async function Home() {
     why: <WhyChooseUs />,
     gallery: <Gallery items={gallery} />,
     testimonials: <Testimonials reviews={reviews} googleUrl={site.googleReviewUrl} />,
+    booking: <Booking site={site} />,
     contact: <Contact site={site} />,
   };
-  const enabled = normalizeSections(site.sections);
+  // Enabled sections in order, dropping any the current plan can't use.
+  const enabled = normalizeSections(site.sections).filter((key) => {
+    const feature = sectionFeature(key);
+    return !feature || planAllows(tenant.plan, feature);
+  });
 
   return (
     <>

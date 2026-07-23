@@ -10,7 +10,7 @@ import { getTenantId } from "@/lib/tenant";
 import { getSettings } from "@/lib/settings-server";
 import { assertFeature } from "@/lib/entitlements";
 import { getTheme } from "@/lib/themes";
-import { normalizeSections, sectionDef, isAlwaysOn } from "@/lib/sections";
+import { normalizeSections, sectionDef, isAlwaysOn, sectionFeature } from "@/lib/sections";
 import type { SiteSettings } from "@/lib/settings";
 
 export async function saveSettings(formData: FormData) {
@@ -139,7 +139,12 @@ export async function toggleSection(formData: FormData) {
   if (!sectionDef(key) || isAlwaysOn(key)) return;
 
   const cur = normalizeSections((await getSettings()).sections);
-  const next = cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key];
+  const turningOn = !cur.includes(key);
+  // Enabling a premium section requires its plan feature.
+  const feature = sectionFeature(key);
+  if (turningOn && feature) await assertFeature(feature);
+
+  const next = turningOn ? [...cur, key] : cur.filter((k) => k !== key);
   await saveSectionsList(next);
 }
 

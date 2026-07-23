@@ -3,12 +3,16 @@
  * what order (stored per-business in SiteSettings.sections). Pure module.
  */
 
+import type { Feature } from "./plans";
+
 export type SectionDef = {
   key: string;
   label: string;
   desc: string;
   /** Always-on sections can be reordered but not turned off. */
   always?: boolean;
+  /** Plan feature required to use this section (undefined = any website plan). */
+  feature?: Feature;
 };
 
 export const SITE_SECTIONS: SectionDef[] = [
@@ -20,12 +24,20 @@ export const SITE_SECTIONS: SectionDef[] = [
   { key: "why", label: "Why choose us", desc: "Your strengths" },
   { key: "gallery", label: "Gallery", desc: "Photos of your work" },
   { key: "testimonials", label: "Reviews", desc: "What customers say" },
+  { key: "booking", label: "Book an appointment", desc: "Let visitors request an appointment", feature: "booking" },
   { key: "contact", label: "Contact", desc: "How to reach you", always: true },
 ];
 
-export const DEFAULT_SECTIONS = SITE_SECTIONS.map((s) => s.key);
+/** The plan feature a section needs, if any. */
+export function sectionFeature(key: string): Feature | undefined {
+  return sectionDef(key)?.feature;
+}
 
-const VALID = new Set(DEFAULT_SECTIONS);
+/** The default homepage layout — every section except opt-in premium ones. */
+export const DEFAULT_SECTIONS = SITE_SECTIONS.filter((s) => !s.feature).map((s) => s.key);
+
+/** Every section key that may appear in a stored order (incl. premium ones). */
+const VALID = new Set(SITE_SECTIONS.map((s) => s.key));
 
 export function sectionDef(key: string): SectionDef | undefined {
   return SITE_SECTIONS.find((s) => s.key === key);

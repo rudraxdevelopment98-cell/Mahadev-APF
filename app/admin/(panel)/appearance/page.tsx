@@ -2,7 +2,8 @@ import { getSettings } from "@/lib/settings-server";
 import { gateFeature } from "@/lib/entitlements";
 import { setSiteTheme, toggleSection, moveSection } from "@/lib/actions/settings-actions";
 import { THEMES, getTheme } from "@/lib/themes";
-import { SITE_SECTIONS, normalizeSections, sectionDef, isAlwaysOn } from "@/lib/sections";
+import { SITE_SECTIONS, normalizeSections, sectionDef, isAlwaysOn, sectionFeature } from "@/lib/sections";
+import { getCurrentTenant } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +16,15 @@ export default async function AppearancePage({
   const { saved } = await searchParams;
   const settings = await getSettings();
   const current = getTheme(settings.theme).id;
-  const enabled = normalizeSections(settings.sections);
-  const disabled = SITE_SECTIONS.filter((s) => !enabled.includes(s.key)).map((s) => s.key);
+  const planFeatures = (await getCurrentTenant()).planDetails.features;
+  const canUseSection = (key: string) => {
+    const f = sectionFeature(key);
+    return !f || planFeatures.includes(f);
+  };
+  const enabled = normalizeSections(settings.sections).filter(canUseSection);
+  const off = SITE_SECTIONS.filter((s) => !enabled.includes(s.key));
+  const addable = off.filter((s) => canUseSection(s.key)).map((s) => s.key);
+  const locked = off.filter((s) => !canUseSection(s.key));
 
   return (
     <div>
@@ -142,11 +150,11 @@ export default async function AppearancePage({
           })}
         </div>
 
-        {disabled.length > 0 && (
+        {addable.length > 0 && (
           <div className="mt-4 max-w-2xl">
             <p className="mb-2 text-xs uppercase tracking-wide text-muted">Hidden sections</p>
             <div className="flex flex-wrap gap-2">
-              {disabled.map((key) => {
+              {addable.map((key) => {
                 const def = sectionDef(key)!;
                 return (
                   <form key={key} action={toggleSection}>
@@ -157,6 +165,23 @@ export default async function AppearancePage({
                   </form>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {locked.length > 0 && (
+          <div className="mt-4 max-w-2xl">
+            <p className="mb-2 text-xs uppercase tracking-wide text-muted">Premium sections</p>
+            <div className="flex flex-wrap gap-2">
+              {locked.map((s) => (
+                <span
+                  key={s.key}
+                  title="Available on a higher plan"
+                  className="cursor-not-allowed rounded-full border border-dashed border-white/15 px-3 py-1.5 text-xs text-muted/70"
+                >
+                  🔒 {s.label} · upgrade
+                </span>
+              ))}
             </div>
           </div>
         )}

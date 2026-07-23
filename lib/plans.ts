@@ -23,6 +23,7 @@ export type Feature =
   | "reviews" // reviews + Google review button
   | "customDomain" // use the business's own domain
   | "removeBranding" // hide "Powered by" footer
+  | "booking" // on-site appointment / booking request section
   | "prioritySupport";
 
 export type Limits = {
@@ -53,6 +54,7 @@ const ALL_FEATURES: Feature[] = [
   "reviews",
   "customDomain",
   "removeBranding",
+  "booking",
   "prioritySupport",
 ];
 

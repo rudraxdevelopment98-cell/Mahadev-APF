@@ -17,6 +17,7 @@ const FEATURE_LABEL: Record<Feature, string> = {
   reviews: "Reviews",
   customDomain: "Custom domain",
   removeBranding: "Remove branding",
+  booking: "Booking section",
   prioritySupport: "Priority support",
 };
 
