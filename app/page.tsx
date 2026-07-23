@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Preloader from "@/components/Preloader";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
@@ -15,6 +16,7 @@ import { getGallery } from "@/lib/gallery-server";
 import { getReviews } from "@/lib/reviews-server";
 import { getSpaces } from "@/lib/spaces-server";
 import { isPortalHost } from "@/lib/host";
+import { normalizeSections } from "@/lib/sections";
 
 export default async function Home() {
   // On the RudrOne portal host, the homepage is the platform landing, not a
@@ -27,19 +29,28 @@ export default async function Home() {
     getReviews(),
     getSpaces(),
   ]);
+
+  // Which homepage sections this business shows, and in what order.
+  const sections: Record<string, React.ReactNode> = {
+    hero: <Hero site={site} />,
+    about: <About site={site} />,
+    stats: <Stats stats={site.stats} />,
+    products: <Products />,
+    industries: <Industries spaces={spaces} />,
+    why: <WhyChooseUs />,
+    gallery: <Gallery items={gallery} />,
+    testimonials: <Testimonials reviews={reviews} googleUrl={site.googleReviewUrl} />,
+    contact: <Contact site={site} />,
+  };
+  const enabled = normalizeSections(site.sections);
+
   return (
     <>
       <Preloader />
       <main>
-        <Hero site={site} />
-        <About site={site} />
-        <Stats stats={site.stats} />
-        <Products />
-        <Industries spaces={spaces} />
-        <WhyChooseUs />
-        <Gallery items={gallery} />
-        <Testimonials reviews={reviews} googleUrl={site.googleReviewUrl} />
-        <Contact site={site} />
+        {enabled.map((key) => (
+          <Fragment key={key}>{sections[key]}</Fragment>
+        ))}
       </main>
     </>
   );

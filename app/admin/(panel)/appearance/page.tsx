@@ -1,7 +1,8 @@
 import { getSettings } from "@/lib/settings-server";
 import { gateFeature } from "@/lib/entitlements";
-import { setSiteTheme } from "@/lib/actions/settings-actions";
+import { setSiteTheme, toggleSection, moveSection } from "@/lib/actions/settings-actions";
 import { THEMES, getTheme } from "@/lib/themes";
+import { SITE_SECTIONS, normalizeSections, sectionDef, isAlwaysOn } from "@/lib/sections";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,8 @@ export default async function AppearancePage({
   const { saved } = await searchParams;
   const settings = await getSettings();
   const current = getTheme(settings.theme).id;
+  const enabled = normalizeSections(settings.sections);
+  const disabled = SITE_SECTIONS.filter((s) => !enabled.includes(s.key)).map((s) => s.key);
 
   return (
     <div>
@@ -91,6 +94,72 @@ export default async function AppearancePage({
             </form>
           );
         })}
+      </div>
+
+      {/* Homepage sections — toggle + reorder */}
+      <div className="mt-12">
+        <h2 className="font-heading text-xl font-bold">Homepage sections</h2>
+        <p className="mb-4 mt-1 text-sm text-muted">
+          Choose which sections appear on your homepage and in what order. Hero and Contact are always shown.
+        </p>
+
+        <div className="max-w-2xl overflow-hidden rounded-2xl border border-white/10">
+          {enabled.map((key, i) => {
+            const def = sectionDef(key)!;
+            return (
+              <div key={key} className="flex items-center gap-3 border-b border-white/5 bg-ink-soft/40 px-4 py-3 last:border-b-0">
+                <div className="flex flex-col">
+                  <form action={moveSection}>
+                    <input type="hidden" name="key" value={key} />
+                    <input type="hidden" name="dir" value="up" />
+                    <button disabled={i === 0} className="px-1 text-muted hover:text-gold disabled:opacity-30" aria-label="Move up">▲</button>
+                  </form>
+                  <form action={moveSection}>
+                    <input type="hidden" name="key" value={key} />
+                    <input type="hidden" name="dir" value="down" />
+                    <button disabled={i === enabled.length - 1} className="px-1 text-muted hover:text-gold disabled:opacity-30" aria-label="Move down">▼</button>
+                  </form>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">
+                    {def.label}
+                    {isAlwaysOn(key) && (
+                      <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted">Always on</span>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted">{def.desc}</p>
+                </div>
+                {!isAlwaysOn(key) && (
+                  <form action={toggleSection}>
+                    <input type="hidden" name="key" value={key} />
+                    <button className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-300 hover:bg-emerald-400/20">
+                      On · turn off
+                    </button>
+                  </form>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {disabled.length > 0 && (
+          <div className="mt-4 max-w-2xl">
+            <p className="mb-2 text-xs uppercase tracking-wide text-muted">Hidden sections</p>
+            <div className="flex flex-wrap gap-2">
+              {disabled.map((key) => {
+                const def = sectionDef(key)!;
+                return (
+                  <form key={key} action={toggleSection}>
+                    <input type="hidden" name="key" value={key} />
+                    <button className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold">
+                      + {def.label}
+                    </button>
+                  </form>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

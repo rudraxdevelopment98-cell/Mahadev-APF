@@ -48,6 +48,8 @@ export type SiteSettings = {
   aboutImageUrl: string;
   // Appearance — chosen site theme (see lib/themes)
   theme: string;
+  // Appearance — ordered list of enabled homepage sections (see lib/sections)
+  sections?: string[];
 };
 
 export const defaultSettings: SiteSettings = {
