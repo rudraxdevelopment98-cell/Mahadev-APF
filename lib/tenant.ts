@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { prisma } from "./db";
 import { getPlan, type Plan } from "./plans";
 import { tenantSlugFromHost, isPortalHost, normalizeHost } from "./host";
+import { getImpersonatedTenantId } from "./impersonation";
 
 /**
  * Resolves the "current business" for a request from the request host:
@@ -40,6 +41,27 @@ export async function getTenantId(): Promise<string> {
 
 /** The current business account, or a safe fallback if none is seeded yet. */
 export async function getCurrentTenant(): Promise<CurrentTenant> {
+  // A RudrOne platform admin can "open" any business from the control room;
+  // that override wins over host resolution so they can view/set it up here.
+  const impId = await getImpersonatedTenantId();
+  if (impId) {
+    try {
+      const impRow = await prisma.tenant.findUnique({ where: { id: impId } });
+      if (impRow) {
+        return {
+          id: impRow.id,
+          slug: impRow.slug,
+          name: impRow.name,
+          plan: impRow.plan,
+          status: impRow.status,
+          planDetails: getPlan(impRow.plan),
+        };
+      }
+    } catch {
+      // fall through to normal resolution
+    }
+  }
+
   const host = await currentHost();
   const subSlug = tenantSlugFromHost(host); // "mahadev" for mahadev.rudrone.com, else null
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireSuperAdmin } from "@/lib/superadmin";
 import { updateTenant } from "@/lib/actions/superadmin-actions";
@@ -61,7 +62,7 @@ export default async function BusinessesPage() {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-heading text-lg font-bold">{t.name}</h3>
+                    <Link href={`/rudrone/admin/businesses/${t.id}`} className="font-heading text-lg font-bold hover:text-gold">{t.name}</Link>
                     <span className={`rounded-full px-2 py-0.5 text-[11px] uppercase tracking-wide ${statusStyle[t.status] ?? "bg-white/10 text-muted"}`}>
                       {t.status}
                     </span>
