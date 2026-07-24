@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { requireSuperAdmin } from "@/lib/superadmin";
 import { provisionTenant } from "@/lib/tenant-provision";
 import { setImpersonation, clearImpersonation } from "@/lib/impersonation";
+import { hashPassword } from "@/lib/auth";
 import { normalizeHost } from "@/lib/host";
 import { normalizeSlug, slugError } from "@/lib/slug";
 import { DEFAULT_TENANT_SLUG } from "@/lib/tenant";
@@ -147,4 +148,79 @@ export async function impersonateBusiness(formData: FormData) {
 export async function stopImpersonating() {
   await clearImpersonation();
   redirect("/rudrone/admin/businesses");
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export type UserState = { error?: string; ok?: boolean };
+
+/** Add a user (owner or staff) to a business from the control room. */
+export async function addBusinessUser(_prev: UserState, formData: FormData): Promise<UserState> {
+  await requireSuperAdmin();
+  const tenantId = String(formData.get("tenantId") ?? "");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const name = String(formData.get("name") ?? "").trim();
+  const role = String(formData.get("role") ?? "STAFF") === "OWNER" ? "OWNER" : "STAFF";
+  const password = String(formData.get("password") ?? "");
+
+  if (!(await prisma.tenant.findUnique({ where: { id: tenantId } }))) return { error: "Business not found." };
+  if (!name) return { error: "Name is required." };
+  if (!EMAIL_RE.test(email)) return { error: "Enter a valid email." };
+  if (password && password.length < 8) return { error: "Password must be at least 8 characters." };
+  if (await prisma.user.findUnique({ where: { email } })) return { error: "That email is already in use." };
+
+  await prisma.user.create({
+    data: {
+      tenantId,
+      email,
+      name,
+      role,
+      isActive: true,
+      passwordHash: password ? await hashPassword(password) : "",
+    },
+  });
+  revalidatePath(`/rudrone/admin/businesses/${tenantId}`);
+  return { ok: true };
+}
+
+/** Reset a user's password (e.g. an owner who's locked out). */
+export async function resetBusinessUserPassword(_prev: UserState, formData: FormData): Promise<UserState> {
+  await requireSuperAdmin();
+  const userId = String(formData.get("userId") ?? "");
+  const password = String(formData.get("password") ?? "");
+  if (password.length < 8) return { error: "Password must be at least 8 characters." };
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return { error: "User not found." };
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash: await hashPassword(password) } });
+  revalidatePath(`/rudrone/admin/businesses/${user.tenantId}`);
+  return { ok: true };
+}
+
+/** Enable / disable a user's access. */
+export async function toggleBusinessUser(formData: FormData) {
+  await requireSuperAdmin();
+  const userId = String(formData.get("userId") ?? "");
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return;
+  // Don't disable the last active owner of a business.
+  if (user.isActive && user.role === "OWNER") {
+    const owners = await prisma.user.count({ where: { tenantId: user.tenantId, role: "OWNER", isActive: true } });
+    if (owners <= 1) throw new Error("A business must keep at least one active owner.");
+  }
+  await prisma.user.update({ where: { id: userId }, data: { isActive: !user.isActive } });
+  revalidatePath(`/rudrone/admin/businesses/${user.tenantId}`);
+}
+
+/** Remove a user from a business. */
+export async function removeBusinessUser(formData: FormData) {
+  await requireSuperAdmin();
+  const userId = String(formData.get("userId") ?? "");
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return;
+  if (user.role === "OWNER") {
+    const owners = await prisma.user.count({ where: { tenantId: user.tenantId, role: "OWNER" } });
+    if (owners <= 1) throw new Error("A business must keep at least one owner.");
+  }
+  await prisma.user.delete({ where: { id: userId } });
+  revalidatePath(`/rudrone/admin/businesses/${user.tenantId}`);
 }

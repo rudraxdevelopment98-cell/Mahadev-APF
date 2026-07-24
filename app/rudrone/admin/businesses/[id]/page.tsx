@@ -9,6 +9,7 @@ import { planLimit, isUnlimited, getPlan } from "@/lib/plans";
 import { getTheme } from "@/lib/themes";
 import { normalizeSections, sectionDef } from "@/lib/sections";
 import BusinessDetail from "@/components/rudrone/BusinessDetail";
+import BusinessUsers from "@/components/rudrone/BusinessUsers";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: `${PLATFORM.name} — Business`, robots: { index: false } };
@@ -111,21 +112,10 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-ink-soft/40 p-5">
-          <h2 className="mb-3 font-heading text-lg font-bold">Users ({users.length})</h2>
-          <div className="space-y-2">
-            {users.map((u) => (
-              <div key={u.id} className="flex items-center justify-between gap-3 text-sm">
-                <div className="min-w-0">
-                  <p className="truncate">{u.name || u.email}</p>
-                  <p className="truncate text-xs text-muted">{u.email}</p>
-                </div>
-                <span className="text-xs text-gold">{u.role}{u.isActive ? "" : " · off"}</span>
-              </div>
-            ))}
-            {users.length === 0 && <p className="text-sm text-muted">No users.</p>}
-          </div>
-        </div>
+        <BusinessUsers
+          tenantId={tenant.id}
+          users={users.map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role, isActive: u.isActive }))}
+        />
       </div>
 
       <BusinessDetail

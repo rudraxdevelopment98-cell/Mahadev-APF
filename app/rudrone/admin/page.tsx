@@ -23,13 +23,20 @@ function monthStart(): Date {
 export default async function ControlRoomDashboard() {
   await requireSuperAdmin();
 
-  const [tenants, invMonth, invTotal, users, customers] = await Promise.all([
+  const [tenants, invMonth, invTotal, users, customers, recentInvoices] = await Promise.all([
     prisma.tenant.findMany({ orderBy: { createdAt: "desc" } }),
     prisma.invoice.count({ where: { createdAt: { gte: monthStart() } } }),
     prisma.invoice.count(),
     prisma.user.count(),
     prisma.customer.count(),
+    prisma.invoice.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      select: { id: true, number: true, billName: true, grandTotal: true, tenantId: true },
+    }),
   ]);
+  const nameById = new Map(tenants.map((t) => [t.id, t.name]));
+  const newThisMonth = tenants.filter((t) => t.createdAt >= monthStart()).length;
 
   const byPlan = tenants.reduce<Record<string, number>>((a, t) => ((a[t.plan] = (a[t.plan] ?? 0) + 1), a), {});
   const byStatus = tenants.reduce<Record<string, number>>((a, t) => ((a[t.status] = (a[t.status] ?? 0) + 1), a), {});
@@ -39,11 +46,11 @@ export default async function ControlRoomDashboard() {
 
   const cards = [
     { label: "Businesses", value: String(tenants.length), accent: true },
+    { label: "New this month", value: `+${newThisMonth}` },
     { label: "Est. MRR", value: formatINR(mrr) },
     { label: "Invoices this month", value: String(invMonth) },
     { label: "Total invoices", value: String(invTotal) },
-    { label: "Users", value: String(users) },
-    { label: "Customers", value: String(customers) },
+    { label: "Users · Customers", value: `${users} · ${customers}` },
   ];
 
   return (
@@ -110,6 +117,36 @@ export default async function ControlRoomDashboard() {
             Statuses: {Object.entries(byStatus).map(([k, v]) => `${v} ${k}`).join(" · ") || "—"}
           </p>
         </div>
+      </div>
+
+      <div className="mt-8 rounded-2xl border border-white/10 bg-ink-soft/40 p-5">
+        <h2 className="mb-4 font-heading text-lg font-bold">Recent invoices across all businesses</h2>
+        {recentInvoices.length === 0 ? (
+          <p className="text-sm text-muted">No invoices yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[520px] text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wide text-muted">
+                  <th className="pb-2 font-medium">Invoice</th>
+                  <th className="pb-2 font-medium">Business</th>
+                  <th className="pb-2 font-medium">Customer</th>
+                  <th className="pb-2 text-right font-medium">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentInvoices.map((inv) => (
+                  <tr key={inv.id} className="border-t border-white/5">
+                    <td className="py-2 font-mono text-xs">{inv.number}</td>
+                    <td className="py-2 text-muted">{nameById.get(inv.tenantId) ?? "—"}</td>
+                    <td className="py-2">{inv.billName}</td>
+                    <td className="py-2 text-right tabular-nums">{formatINR(inv.grandTotal)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

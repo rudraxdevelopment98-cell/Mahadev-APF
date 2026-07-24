@@ -27,25 +27,84 @@ function usage(used: number, limit: number): string {
   return isUnlimited(limit) ? `${used} · ∞` : `${used} / ${limit}`;
 }
 
-export default async function BusinessesPage() {
+export default async function BusinessesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; plan?: string; status?: string }>;
+}) {
   await requireSuperAdmin();
+  const sp = await searchParams;
+  const q = (sp.q ?? "").trim();
+  const plan = sp.plan ?? "all";
+  const status = sp.status ?? "all";
 
-  const [tenants, invAgg, userAgg] = await Promise.all([
-    prisma.tenant.findMany({ orderBy: { createdAt: "asc" } }),
+  const where = {
+    AND: [
+      q ? { OR: [{ name: { contains: q, mode: "insensitive" as const } }, { slug: { contains: q, mode: "insensitive" as const } }] } : {},
+      plan !== "all" ? { plan } : {},
+      status !== "all" ? { status } : {},
+    ],
+  };
+
+  const [tenants, total, invAgg, userAgg] = await Promise.all([
+    prisma.tenant.findMany({ where, orderBy: { createdAt: "asc" } }),
+    prisma.tenant.count(),
     prisma.invoice.groupBy({ by: ["tenantId"], where: { createdAt: { gte: monthStart() } }, _count: { _all: true } }),
     prisma.user.groupBy({ by: ["tenantId"], _count: { _all: true } }),
   ]);
   const invBy = new Map(invAgg.map((r) => [r.tenantId, r._count._all]));
   const userBy = new Map(userAgg.map((r) => [r.tenantId, r._count._all]));
 
+  // Preserve active filters when building filter links.
+  const link = (over: Record<string, string>) => {
+    const p = new URLSearchParams();
+    const merged = { q, plan, status, ...over };
+    if (merged.q) p.set("q", merged.q);
+    if (merged.plan !== "all") p.set("plan", merged.plan);
+    if (merged.status !== "all") p.set("status", merged.status);
+    const s = p.toString();
+    return s ? `/rudrone/admin/businesses?${s}` : "/rudrone/admin/businesses";
+  };
+  const chip = (active: boolean) =>
+    `rounded-full px-3 py-1 text-xs transition-colors ${active ? "bg-gold text-ink" : "border border-white/10 text-muted hover:text-paper"}`;
+
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-heading text-3xl font-bold">Businesses</h1>
-          <p className="mt-1 text-sm text-muted">{tenants.length} on {PLATFORM.name} · set each one&apos;s plan, status and custom domain.</p>
+          <p className="mt-1 text-sm text-muted">
+            {tenants.length} of {total} on {PLATFORM.name} · set each one&apos;s plan, status and custom domain.
+          </p>
         </div>
         <CreateBusinessForm />
+      </div>
+
+      {/* Search + filters */}
+      <div className="mb-6 space-y-3">
+        <form method="GET" className="flex gap-2">
+          {plan !== "all" && <input type="hidden" name="plan" value={plan} />}
+          {status !== "all" && <input type="hidden" name="status" value={status} />}
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder="Search by name or address…"
+            className="w-full max-w-sm rounded-lg border border-white/10 bg-ink/60 px-3 py-2 text-sm outline-none focus:border-gold"
+          />
+          <button className="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-ink hover:bg-gold-soft">Search</button>
+          {(q || plan !== "all" || status !== "all") && (
+            <Link href="/rudrone/admin/businesses" className="rounded-lg border border-white/10 px-4 py-2 text-sm text-muted hover:text-paper">
+              Clear
+            </Link>
+          )}
+        </form>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs uppercase tracking-wide text-muted">Plan:</span>
+          <Link href={link({ plan: "all" })} className={chip(plan === "all")}>all</Link>
+          {PLAN_ORDER.map((p) => <Link key={p} href={link({ plan: p })} className={chip(plan === p)}>{p}</Link>)}
+          <span className="ml-3 text-xs uppercase tracking-wide text-muted">Status:</span>
+          {["all", ...STATUSES].map((s) => <Link key={s} href={link({ status: s })} className={chip(status === s)}>{s}</Link>)}
+        </div>
       </div>
 
       <div className="space-y-3">
