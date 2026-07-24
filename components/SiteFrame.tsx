@@ -16,21 +16,15 @@ import type { SiteSettings } from "@/lib/settings";
 export default function SiteFrame({
   site,
   children,
-  showBranding = false,
 }: {
   site: SiteSettings;
   children: React.ReactNode;
-  showBranding?: boolean;
 }) {
   const pathname = usePathname();
-  // The admin area, the public invoice document, and the RudrOne portal pages
-  // (sign-up + landing) have their own standalone layout — no business-site
-  // marketing nav, footer or floating buttons.
+  // The admin area and the public invoice/estimate document have their own
+  // standalone layout — no marketing nav, footer or floating buttons.
   const bare =
-    pathname?.startsWith("/admin") ||
-    pathname?.startsWith("/invoice") ||
-    pathname?.startsWith("/signup") ||
-    pathname?.startsWith("/rudrone");
+    pathname?.startsWith("/admin") || pathname?.startsWith("/invoice");
 
   if (bare) return <>{children}</>;
 
@@ -40,7 +34,7 @@ export default function SiteFrame({
       <ScrollProgress />
       <Navbar site={site} />
       {children}
-      <Footer site={site} showBranding={showBranding} />
+      <Footer site={site} />
       {/* keeps the floating mobile nav from covering the footer */}
       <div className="h-24 lg:hidden" />
       <WhatsAppButton phone={site.whatsapp} />

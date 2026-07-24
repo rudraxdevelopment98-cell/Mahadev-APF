@@ -1,6 +1,5 @@
 import "server-only";
 import { prisma } from "./db";
-import { getTenantId } from "./tenant";
 
 export type GalleryImage = {
   id: string;
@@ -13,7 +12,7 @@ export type GalleryImage = {
 export async function getGallery(): Promise<GalleryImage[]> {
   try {
     const rows = await prisma.galleryItem.findMany({
-      where: { tenantId: await getTenantId(), isActive: true },
+      where: { isActive: true },
       orderBy: [{ order: "asc" }, { createdAt: "desc" }],
     });
     return rows.map((r) => ({

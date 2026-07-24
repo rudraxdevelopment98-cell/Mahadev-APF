@@ -9,22 +9,6 @@ export const dynamic = "force-dynamic";
 const SETUP_KEY = "setup-mahadev-2026";
 
 const STATEMENTS: string[] = [
-  `CREATE TABLE IF NOT EXISTS "Tenant" (
-    "id" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "plan" TEXT NOT NULL DEFAULT 'free',
-    "status" TEXT NOT NULL DEFAULT 'active',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "Tenant_pkey" PRIMARY KEY ("id")
-  )`,
-  `CREATE UNIQUE INDEX IF NOT EXISTS "Tenant_slug_key" ON "Tenant"("slug")`,
-  // A business can run on its own host (custom domain / vercel URL) inside RudrOne.
-  `ALTER TABLE "Tenant" ADD COLUMN IF NOT EXISTS "domain" TEXT`,
-  `CREATE UNIQUE INDEX IF NOT EXISTS "Tenant_domain_key" ON "Tenant"("domain")`,
-  `INSERT INTO "Tenant" ("id","slug","name","plan","status") VALUES
-    ('tenant_mahadev','mahadev','Mahadev APF','max','active')
-    ON CONFLICT ("slug") DO NOTHING`,
   `CREATE TABLE IF NOT EXISTS "User" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -104,24 +88,11 @@ const STATEMENTS: string[] = [
     CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
   )`,
   `CREATE TABLE IF NOT EXISTS "SiteSetting" (
-    "tenantId" TEXT NOT NULL,
+    "id" INTEGER NOT NULL,
     "data" JSONB NOT NULL,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    CONSTRAINT "SiteSetting_pkey" PRIMARY KEY ("tenantId")
+    CONSTRAINT "SiteSetting_pkey" PRIMARY KEY ("id")
   )`,
-  // Migrate an existing singleton SiteSetting (id=1) to per-business (keyed by
-  // tenantId), preserving the current business's saved content. Runs once.
-  `DO $$ BEGIN
-    IF EXISTS (SELECT 1 FROM information_schema.columns
-               WHERE table_name='SiteSetting' AND column_name='id') THEN
-      ALTER TABLE "SiteSetting" ADD COLUMN IF NOT EXISTS "tenantId" TEXT;
-      UPDATE "SiteSetting" SET "tenantId" = 'tenant_mahadev' WHERE "tenantId" IS NULL;
-      ALTER TABLE "SiteSetting" ALTER COLUMN "tenantId" SET NOT NULL;
-      ALTER TABLE "SiteSetting" DROP CONSTRAINT IF EXISTS "SiteSetting_pkey";
-      ALTER TABLE "SiteSetting" ADD CONSTRAINT "SiteSetting_pkey" PRIMARY KEY ("tenantId");
-      ALTER TABLE "SiteSetting" DROP COLUMN "id";
-    END IF;
-  END $$`,
   `CREATE TABLE IF NOT EXISTS "Service" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
@@ -151,19 +122,6 @@ const STATEMENTS: string[] = [
   `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "permissions" TEXT NOT NULL DEFAULT ''`,
   `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN NOT NULL DEFAULT true`,
   `ALTER TABLE "User" ALTER COLUMN "passwordHash" SET DEFAULT ''`,
-  // Multi-tenant: tag every table with its business (backfilled to tenant #1).
-  `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "tenantId" TEXT NOT NULL DEFAULT 'tenant_mahadev'`,
-  `ALTER TABLE "Customer" ADD COLUMN IF NOT EXISTS "tenantId" TEXT NOT NULL DEFAULT 'tenant_mahadev'`,
-  `ALTER TABLE "Material" ADD COLUMN IF NOT EXISTS "tenantId" TEXT NOT NULL DEFAULT 'tenant_mahadev'`,
-  `ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "tenantId" TEXT NOT NULL DEFAULT 'tenant_mahadev'`,
-  `ALTER TABLE "Service" ADD COLUMN IF NOT EXISTS "tenantId" TEXT NOT NULL DEFAULT 'tenant_mahadev'`,
-  `ALTER TABLE "GalleryItem" ADD COLUMN IF NOT EXISTS "tenantId" TEXT NOT NULL DEFAULT 'tenant_mahadev'`,
-  `ALTER TABLE "Review" ADD COLUMN IF NOT EXISTS "tenantId" TEXT NOT NULL DEFAULT 'tenant_mahadev'`,
-  `ALTER TABLE "Space" ADD COLUMN IF NOT EXISTS "tenantId" TEXT NOT NULL DEFAULT 'tenant_mahadev'`,
-  `ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "tenantId" TEXT NOT NULL DEFAULT 'tenant_mahadev'`,
-  `CREATE INDEX IF NOT EXISTS "Invoice_tenantId_idx" ON "Invoice"("tenantId")`,
-  `CREATE INDEX IF NOT EXISTS "Customer_tenantId_idx" ON "Customer"("tenantId")`,
-  `CREATE INDEX IF NOT EXISTS "Material_tenantId_idx" ON "Material"("tenantId")`,
   `INSERT INTO "User" ("id","email","passwordHash","name","role","permissions","isActive") VALUES
     ('own_atul','atuljotaniya151@gmail.com','','Atul','OWNER','',true),
     ('own_rudrax','rudraxdevelopment98@gmail.com','','Rudrax','OWNER','',true),

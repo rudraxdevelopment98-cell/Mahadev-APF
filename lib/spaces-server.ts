@@ -1,13 +1,12 @@
 import "server-only";
 import { prisma } from "./db";
-import { getTenantId } from "./tenant";
 import { defaultSpaces, type SpaceItem } from "./spaces";
 
 /** Active spaces, ordered. Falls back to defaults if none / DB offline. */
 export async function getSpaces(): Promise<SpaceItem[]> {
   try {
     const rows = await prisma.space.findMany({
-      where: { tenantId: await getTenantId(), isActive: true },
+      where: { isActive: true },
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
     if (!rows.length) return defaultSpaces;

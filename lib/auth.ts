@@ -24,31 +24,16 @@ export async function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, 10);
 }
 
-/**
- * Validate credentials against a specific tenant and, on success, return the
- * user. Scoping by tenant means a user can only sign in on their own
- * business's site, even though emails are unique platform-wide.
- */
+/** Validate credentials and, on success, return the user. */
 export async function verifyCredentials(
   email: string,
   password: string,
-  tenantId: string,
 ): Promise<SessionUser | null> {
-  const user = await prisma.user.findFirst({
-    where: { email: email.toLowerCase().trim(), tenantId, isActive: true },
-  });
-  if (!user || !user.passwordHash) return null;
+  const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
+  if (!user) return null;
   const ok = await bcrypt.compare(password, user.passwordHash);
   if (!ok) return null;
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    perms: user.permissions
-      ? user.permissions.split(",").map((s) => s.trim()).filter(Boolean)
-      : [],
-  };
+  return { id: user.id, name: user.name, email: user.email, role: user.role, perms: [] };
 }
 
 export async function createSession(user: SessionUser): Promise<void> {

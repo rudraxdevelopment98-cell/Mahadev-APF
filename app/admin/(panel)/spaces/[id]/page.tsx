@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { getTenantId } from "@/lib/tenant";
 import { updateSpace } from "@/lib/actions/space-actions";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +14,7 @@ export default async function EditSpacePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const sp = await prisma.space.findFirst({ where: { id, tenantId: await getTenantId() } });
+  const sp = await prisma.space.findUnique({ where: { id } });
   if (!sp) notFound();
   const save = updateSpace.bind(null, id);
 

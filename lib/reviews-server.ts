@@ -1,13 +1,12 @@
 import "server-only";
 import { prisma } from "./db";
-import { getTenantId } from "./tenant";
 import { defaultReviews, type ReviewItem } from "./reviews";
 
 /** Active reviews, ordered. Falls back to defaults if none / DB offline. */
 export async function getReviews(): Promise<ReviewItem[]> {
   try {
     const rows = await prisma.review.findMany({
-      where: { tenantId: await getTenantId(), isActive: true },
+      where: { isActive: true },
       orderBy: [{ order: "asc" }, { createdAt: "desc" }],
     });
     if (!rows.length) return defaultReviews;

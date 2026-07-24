@@ -4,26 +4,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/lib/actions/auth-actions";
 import { shop } from "@/lib/shop";
-import { SECTIONS, userCan, planHasSection } from "@/lib/permissions";
+import { SECTIONS, userCan } from "@/lib/permissions";
 
 export default function Sidebar({
   userName,
   role,
   perms,
-  planFeatures = [],
 }: {
   userName: string;
   role: string;
   perms: string[];
-  planFeatures?: string[];
 }) {
   const pathname = usePathname();
 
   const links = [
     { href: "/admin", label: "Dashboard", icon: "▤", exact: true },
-    ...SECTIONS.filter(
-      (s) => userCan(role, perms, s.key) && planHasSection(s.key, planFeatures),
-    ).map((s) => ({
+    ...SECTIONS.filter((s) => userCan(role, perms, s.key)).map((s) => ({
       href: s.href,
       label: s.label,
       icon: s.icon,

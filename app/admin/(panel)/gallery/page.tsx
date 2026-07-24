@@ -1,13 +1,10 @@
 import { prisma } from "@/lib/db";
-import { getTenantId } from "@/lib/tenant";
-import { gateFeature } from "@/lib/entitlements";
 import { deleteGalleryItem } from "@/lib/actions/gallery-actions";
 import GalleryUploadForm from "@/components/admin/GalleryUploadForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function GalleryAdminPage() {
-  await gateFeature("gallery");
   // Blob can be connected via a read-write token OR via OIDC (store ID).
   const blobOn = Boolean(
     process.env.BLOB_READ_WRITE_TOKEN ||
@@ -17,7 +14,6 @@ export default async function GalleryAdminPage() {
   let items: Awaited<ReturnType<typeof prisma.galleryItem.findMany>> = [];
   try {
     items = await prisma.galleryItem.findMany({
-      where: { tenantId: await getTenantId() },
       orderBy: [{ order: "asc" }, { createdAt: "desc" }],
     });
   } catch {

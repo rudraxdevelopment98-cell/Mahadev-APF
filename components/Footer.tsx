@@ -1,15 +1,8 @@
 import Link from "next/link";
 import { nav } from "@/lib/data";
 import type { SiteSettings } from "@/lib/settings";
-import { PLATFORM } from "@/lib/platform";
 
-export default function Footer({
-  site,
-  showBranding = false,
-}: {
-  site: SiteSettings;
-  showBranding?: boolean;
-}) {
+export default function Footer({ site }: { site: SiteSettings }) {
   return (
     <footer className="border-t border-white/10 bg-ink">
       <div className="container-px py-16">
@@ -92,19 +85,6 @@ export default function Footer({
           Website managed &amp; developed by{" "}
           <span className="text-gold">Kuldeep J @ RD-IT-Services</span> · 2026
         </p>
-
-        {showBranding && (
-          <p className="mt-4 text-center text-xs text-muted">
-            <a
-              href={`https://${PLATFORM.domain}`}
-              className="hover:text-gold"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {PLATFORM.poweredBy}
-            </a>
-          </p>
-        )}
       </div>
     </footer>
   );

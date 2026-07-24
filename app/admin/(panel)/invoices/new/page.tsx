@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { getTenantId } from "@/lib/tenant";
 import InvoiceBuilder from "@/components/admin/InvoiceBuilder";
 import HelpHint from "@/components/admin/HelpHint";
 
@@ -16,12 +15,12 @@ const invoiceSteps = [
   "On the saved invoice you can Print / Save PDF, send it on WhatsApp, Edit it, or record payments.",
 ];
 
-async function loadEstimates(tenantId: string) {
+async function loadEstimates() {
   // Defensive: the import-from-estimate picker is a convenience. Never let it
   // take down the whole "New Invoice" page if the query fails for any reason.
   try {
     return await prisma.invoice.findMany({
-      where: { tenantId, type: "ESTIMATE", status: { not: "CANCELLED" } },
+      where: { type: "ESTIMATE", status: { not: "CANCELLED" } },
       orderBy: { date: "desc" },
       take: 50,
       select: {
@@ -53,19 +52,17 @@ async function loadEstimates(tenantId: string) {
 }
 
 export default async function NewInvoicePage() {
-  const tenantId = await getTenantId();
   const [customers, materials, estimates] = await Promise.all([
     prisma.customer.findMany({
-      where: { tenantId },
       orderBy: { name: "asc" },
       select: { id: true, name: true, phone: true, gstin: true, address: true },
     }),
     prisma.material.findMany({
-      where: { tenantId, isActive: true },
+      where: { isActive: true },
       orderBy: { name: "asc" },
       select: { id: true, name: true, unit: true, hsn: true, rate: true, taxRate: true },
     }),
-    loadEstimates(tenantId),
+    loadEstimates(),
   ]);
 
   return (

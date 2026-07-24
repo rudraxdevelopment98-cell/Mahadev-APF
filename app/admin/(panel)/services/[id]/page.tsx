@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { getTenantId } from "@/lib/tenant";
 import { updateService } from "@/lib/actions/service-actions";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +14,7 @@ export default async function EditServicePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const s = await prisma.service.findFirst({ where: { id, tenantId: await getTenantId() } });
+  const s = await prisma.service.findUnique({ where: { id } });
   if (!s) notFound();
 
   const pts = Array.isArray(s.points) ? (s.points as string[]).join("\n") : "";

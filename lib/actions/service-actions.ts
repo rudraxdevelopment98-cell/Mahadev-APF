@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { getTenantId } from "@/lib/tenant";
 
 async function requireAuth() {
   const user = await getSessionUser();
@@ -40,7 +39,7 @@ export async function createService(formData: FormData) {
   await requireAuth();
   const data = parse(formData);
   if (!data.title || !data.blurb) return;
-  await prisma.service.create({ data: { ...data, tenantId: await getTenantId() } });
+  await prisma.service.create({ data });
   refresh();
 }
 

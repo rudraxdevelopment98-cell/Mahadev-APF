@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { getSettings } from "@/lib/settings-server";
-import { getTenantId } from "@/lib/tenant";
 import { InvoiceSheet } from "@/components/InvoiceSheet";
 import { invoiceTypeLabel } from "@/lib/invoice-types";
 import PrintButton from "@/components/admin/PrintButton";
@@ -15,7 +14,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const inv = await prisma.invoice.findFirst({ where: { id, tenantId: await getTenantId() } });
+  const inv = await prisma.invoice.findUnique({ where: { id } });
   if (!inv) return { title: "Invoice not found" };
   return {
     title: `${invoiceTypeLabel(inv.type)} ${inv.number}`,
@@ -34,8 +33,8 @@ export default async function PublicInvoicePage({
 }) {
   const { id } = await params;
   const [inv, shop] = await Promise.all([
-    prisma.invoice.findFirst({
-      where: { id, tenantId: await getTenantId() },
+    prisma.invoice.findUnique({
+      where: { id },
       include: { items: true, payments: true },
     }),
     getSettings(),

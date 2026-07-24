@@ -1,6 +1,4 @@
 import { prisma } from "@/lib/db";
-import { getTenantId } from "@/lib/tenant";
-import { gateFeature } from "@/lib/entitlements";
 import { setLeadStatus, deleteLead } from "@/lib/actions/lead-actions";
 
 export const dynamic = "force-dynamic";
@@ -12,13 +10,9 @@ const statusStyles: Record<string, string> = {
 };
 
 export default async function LeadsPage() {
-  await gateFeature("website");
   let leads: Awaited<ReturnType<typeof prisma.lead.findMany>> = [];
   try {
-    leads = await prisma.lead.findMany({
-      where: { tenantId: await getTenantId() },
-      orderBy: { createdAt: "desc" },
-    });
+    leads = await prisma.lead.findMany({ orderBy: { createdAt: "desc" } });
   } catch {
     leads = [];
   }

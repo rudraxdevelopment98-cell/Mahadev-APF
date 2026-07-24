@@ -6,8 +6,6 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { computeTotals, round2 } from "@/lib/money";
 import { getSettings } from "@/lib/settings-server";
-import { getTenantId } from "@/lib/tenant";
-import { assertInvoiceQuota } from "@/lib/entitlements";
 import type { CreateInvoiceInput } from "@/lib/invoice-types";
 
 async function requireAuth() {
@@ -22,19 +20,14 @@ function financialYear(d: Date): string {
   return `${startYear}-${String((startYear + 1) % 100).padStart(2, "0")}`;
 }
 
-async function nextInvoiceNumber(
-  tenantId: string,
-  date: Date,
-  prefix: string,
-): Promise<string> {
+async function nextInvoiceNumber(date: Date, prefix: string): Promise<string> {
   const fy = financialYear(date);
   const start = new Date(date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1, 3, 1);
   const end = new Date(start.getFullYear() + 1, 3, 1);
   // Use the highest sequence already issued this financial year (not a count),
-  // so deleting an invoice can never reissue an existing number. Scoped to the
-  // tenant so each business keeps its own invoice series.
+  // so deleting an invoice can never reissue an existing number.
   const existing = await prisma.invoice.findMany({
-    where: { tenantId, date: { gte: start, lt: end } },
+    where: { date: { gte: start, lt: end } },
     select: { number: true },
   });
   let max = 0;
@@ -53,15 +46,14 @@ async function nextInvoiceNumber(
  * whatever was just taken.
  */
 async function createInvoiceWithNumber(
-  tenantId: string,
   date: Date,
   prefix: string,
   build: (number: string) => Parameters<typeof prisma.invoice.create>[0]["data"],
 ) {
   for (let attempt = 0; ; attempt++) {
-    const number = await nextInvoiceNumber(tenantId, date, prefix);
+    const number = await nextInvoiceNumber(date, prefix);
     try {
-      return await prisma.invoice.create({ data: { ...build(number), tenantId } });
+      return await prisma.invoice.create({ data: build(number) });
     } catch (e) {
       const code = (e as { code?: string })?.code;
       if (code === "P2002" && attempt < 5) continue;
@@ -72,7 +64,6 @@ async function createInvoiceWithNumber(
 
 export async function createInvoice(input: CreateInvoiceInput) {
   await requireAuth();
-  await assertInvoiceQuota();
 
   const items = (input.items ?? []).filter(
     (i) => i.description.trim() && (Number(i.quantity) || 0) > 0,
@@ -99,9 +90,8 @@ export async function createInvoice(input: CreateInvoiceInput) {
 
   const date = input.date ? new Date(input.date) : new Date();
   const settings = await getSettings();
-  const tenantId = await getTenantId();
 
-  const invoice = await createInvoiceWithNumber(tenantId, date, settings.invoicePrefix, (number) => ({
+  const invoice = await createInvoiceWithNumber(date, settings.invoicePrefix, (number) => ({
     number,
     type: input.type,
     date,
@@ -201,9 +191,8 @@ export async function updateInvoice(id: string, input: CreateInvoiceInput) {
 /** Create a fresh invoice copying another one's customer + items. */
 export async function duplicateInvoice(id: string) {
   await requireAuth();
-  const tenantId = await getTenantId();
-  const src = await prisma.invoice.findFirst({
-    where: { id, tenantId },
+  const src = await prisma.invoice.findUnique({
+    where: { id },
     include: { items: true },
   });
   if (!src) return;
@@ -211,7 +200,7 @@ export async function duplicateInvoice(id: string) {
   const date = new Date();
   const settings = await getSettings();
 
-  const created = await createInvoiceWithNumber(tenantId, date, settings.invoicePrefix, (number) => ({
+  const created = await createInvoiceWithNumber(date, settings.invoicePrefix, (number) => ({
     number,
     type: src.type,
     date,
@@ -296,9 +285,8 @@ export async function deletePayment(paymentId: string, invoiceId: string) {
 /** Create a new GST Tax Invoice from an existing estimate (keeps the estimate). */
 export async function convertEstimateToInvoice(estimateId: string) {
   await requireAuth();
-  const tenantId = await getTenantId();
-  const src = await prisma.invoice.findFirst({
-    where: { id: estimateId, tenantId },
+  const src = await prisma.invoice.findUnique({
+    where: { id: estimateId },
     include: { items: true },
   });
   if (!src) return;
@@ -306,7 +294,7 @@ export async function convertEstimateToInvoice(estimateId: string) {
   const date = new Date();
   const settings = await getSettings();
 
-  const created = await createInvoiceWithNumber(tenantId, date, settings.invoicePrefix, (number) => ({
+  const created = await createInvoiceWithNumber(date, settings.invoicePrefix, (number) => ({
     number,
     type: "TAX",
     date,

@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { getTenantId } from "@/lib/tenant";
-import { gateFeature } from "@/lib/entitlements";
 import { createService, deleteService } from "@/lib/actions/service-actions";
 
 export const dynamic = "force-dynamic";
@@ -14,11 +12,9 @@ function points(value: unknown): string[] {
 }
 
 export default async function ServicesPage() {
-  await gateFeature("website");
   let services: Awaited<ReturnType<typeof prisma.service.findMany>> = [];
   try {
     services = await prisma.service.findMany({
-      where: { tenantId: await getTenantId() },
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
   } catch {

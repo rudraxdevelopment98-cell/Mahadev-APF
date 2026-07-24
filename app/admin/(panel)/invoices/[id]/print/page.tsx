@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSettings } from "@/lib/settings-server";
-import { getTenantId } from "@/lib/tenant";
 import { InvoiceSheet } from "@/components/InvoiceSheet";
 import PrintButton from "@/components/admin/PrintButton";
 
@@ -15,8 +14,8 @@ export default async function InvoicePrintPage({
 }) {
   const { id } = await params;
   const [inv, shop] = await Promise.all([
-    prisma.invoice.findFirst({
-      where: { id, tenantId: await getTenantId() },
+    prisma.invoice.findUnique({
+      where: { id },
       include: { items: true, payments: true },
     }),
     getSettings(),

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getTenantId } from "@/lib/tenant";
 
 /** Save a website contact-form enquiry as a Lead (shown in the admin). */
 export async function POST(request: Request) {
@@ -31,7 +30,6 @@ export async function POST(request: Request) {
         email: email || null,
         message,
         source: "website",
-        tenantId: await getTenantId(),
       },
     });
     return NextResponse.json({ ok: true }, { status: 201 });

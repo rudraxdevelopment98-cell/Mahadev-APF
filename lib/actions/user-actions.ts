@@ -4,8 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { getTenantId } from "@/lib/tenant";
-import { assertFeature, assertUserQuota } from "@/lib/entitlements";
 import { GRANTABLE_SECTIONS, isOwner } from "@/lib/permissions";
 
 async function requireOwner() {
@@ -27,25 +25,14 @@ function readPerms(formData: FormData): string {
 
 export async function createUser(formData: FormData) {
   await requireOwner();
-  await assertFeature("multiUser");
-  const tenantId = await getTenantId();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const name = String(formData.get("name") ?? "").trim();
   const role = String(formData.get("role") ?? "STAFF") === "OWNER" ? "OWNER" : "STAFF";
   if (!email || !name) throw new Error("Name and email are required.");
 
-  // Emails are unique platform-wide; never let an upsert reach into another
-  // business's account.
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing && existing.tenantId !== tenantId) {
-    throw new Error("That email is already in use.");
-  }
-  if (!existing) await assertUserQuota(); // only new seats count against the plan
-
   await prisma.user.upsert({
     where: { email },
     create: {
-      tenantId,
       email,
       name,
       role,
@@ -66,16 +53,12 @@ export async function createUser(formData: FormData) {
 
 export async function updateUser(id: string, formData: FormData) {
   await requireOwner();
-  const tenantId = await getTenantId();
-  const target = await prisma.user.findFirst({ where: { id, tenantId } });
-  if (!target) throw new Error("User not found.");
-
   const name = String(formData.get("name") ?? "").trim();
   const role = String(formData.get("role") ?? "STAFF") === "OWNER" ? "OWNER" : "STAFF";
   const isActive = formData.get("isActive") != null;
 
   await prisma.user.update({
-    where: { id: target.id },
+    where: { id },
     data: {
       name: name || undefined,
       role,
@@ -90,17 +73,15 @@ export async function updateUser(id: string, formData: FormData) {
 export async function deleteUser(id: string) {
   const me = await requireOwner();
   if (me.id === id) throw new Error("You can't remove your own access.");
-  const tenantId = await getTenantId();
 
-  const target = await prisma.user.findFirst({ where: { id, tenantId } });
-  if (!target) throw new Error("User not found.");
-  if (isOwner(target.role)) {
+  const target = await prisma.user.findUnique({ where: { id } });
+  if (target && isOwner(target.role)) {
     const owners = await prisma.user.count({
-      where: { tenantId, role: { in: ["OWNER", "ADMIN"] }, isActive: true },
+      where: { role: { in: ["OWNER", "ADMIN"] }, isActive: true },
     });
     if (owners <= 1) throw new Error("At least one owner must remain.");
   }
 
-  await prisma.user.delete({ where: { id: target.id } });
+  await prisma.user.delete({ where: { id } });
   revalidatePath("/admin/users");
 }

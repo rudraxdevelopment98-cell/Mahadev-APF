@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { getTenantId } from "@/lib/tenant";
 import InvoiceListClient, { type InvoiceRow } from "@/components/admin/InvoiceListClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function InvoicesPage() {
   const invoices = await prisma.invoice.findMany({
-    where: { tenantId: await getTenantId() },
     orderBy: { createdAt: "desc" },
     include: { payments: { select: { amount: true } } },
   });

@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { getTenantId } from "@/lib/tenant";
-import { gateFeature } from "@/lib/entitlements";
 import { createReview, deleteReview } from "@/lib/actions/review-actions";
 
 export const dynamic = "force-dynamic";
@@ -14,11 +12,9 @@ function Stars({ n }: { n: number }) {
 }
 
 export default async function ReviewsPage() {
-  await gateFeature("reviews");
   let reviews: Awaited<ReturnType<typeof prisma.review.findMany>> = [];
   try {
     reviews = await prisma.review.findMany({
-      where: { tenantId: await getTenantId() },
       orderBy: [{ order: "asc" }, { createdAt: "desc" }],
     });
   } catch {
